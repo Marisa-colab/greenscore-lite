@@ -1,0 +1,6 @@
+{
+  "name": "GreenScore Core Engine",
+  "description": "Plataforma de gestão de eficiência energética, créditos verdes, assistente de voz e telecontagem com controlo de acessos e segurança para clientes.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
