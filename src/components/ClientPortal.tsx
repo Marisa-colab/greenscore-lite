@@ -108,14 +108,3 @@ export function ClientPortal({ utilizadorAtual, onVoltarAdmin }: ClientPortalPro
     </div>
   );
 }
-2. No ficheiro src/App.tsx
-No ficheiro src/App.tsx, perto do fim (onde está a renderização da Aba 3), garante apenas que a linha do ClientPortal está escrita assim:
-
-TypeScript
-        {/* ABA 3: DASHBOARD DO CLIENTE */}
-        {abaAtiva === 'cliente-resultados' && temAcesso && (
-          <ClientPortal 
-            utilizadorAtual={utilizadorAtual} 
-            onVoltarAdmin={() => setAbaAtiva('admin')} 
-          />
-        )}
