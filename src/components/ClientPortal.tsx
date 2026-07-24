@@ -4,6 +4,7 @@ import { verificarLicenca } from '../utils/licenca';
 import { VoiceAssistantCard } from './VoiceAssistantCard';
 import { TelecontagemForm } from './TelecontagemForm';
 import { PostosList } from './PostosList';
+import { RelatorioModule } from './RelatorioModule';
 
 interface ClientPortalProps {
   utilizadorAtual?: Utilizador;
