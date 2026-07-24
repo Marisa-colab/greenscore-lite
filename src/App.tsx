@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Utilizador } from './types';
-import { verificarLicenca } from './utils';
 import { ClientPortal } from './components/ClientPortal';
 
-// Dados de exemplo para inicialização caso o localStorage esteja vazio
+// Função de verificação de licença integrada (evita erros de import de ficheiros)
+function verificarLicenca(u: Utilizador): boolean {
+  if (!u) return false;
+  if (u.licencaAtiva === false) return false;
+  if (!u.dataInicioLicenca || !u.duracaoMeses) return u.licencaAtiva;
+
+  const inicio = new Date(u.dataInicioLicenca);
+  const fim = new Date(inicio);
+  fim.setMonth(fim.getMonth() + u.duracaoMeses);
+
+  return new Date() <= fim;
+}
+
+// Dados de exemplo para inicialização
 const DADOS_INICIAIS: Utilizador[] = [
   {
     id: 'cli_ps_acores',
@@ -27,11 +39,10 @@ const DADOS_INICIAIS: Utilizador[] = [
 ];
 
 export default function App() {
-  // 1. ESTADOS DA APLICAÇÃO
-  // Controla a aba ativa: 'admin' (Aba 1) | 'cliente-input' (Aba 2) | 'cliente-resultados' (Aba 3)
+  // Estado para controlar a aba ativa: 'admin' (Aba 1) | 'cliente-input' (Aba 2) | 'cliente-resultados' (Aba 3)
   const [abaAtiva, setAbaAtiva] = useState<'admin' | 'cliente-input' | 'cliente-resultados'>('cliente-resultados');
 
-  // Estado dos Clientes (carrega do localStorage ou usa os dados iniciais)
+  // Estado dos Clientes (carrega do localStorage ou usa DADOS_INICIAIS)
   const [clientes, setClientes] = useState<Utilizador[]>(() => {
     const saved = localStorage.getItem('gs_clientes');
     if (saved) {
@@ -48,10 +59,10 @@ export default function App() {
   // ID do cliente atualmente selecionado
   const [clienteAtivoId, setClienteAtivoId] = useState<string>('cli_ps_acores');
 
-  // Cliente atual selecionado com base no ID
+  // Cliente selecionado
   const utilizadorAtual = clientes.find((c) => c.id.toString() === clienteAtivoId);
 
-  // 2. FUNÇÃO DE IMPORTAÇÃO DE EXCEL (ADMIN)
+  // Leitura de ficheiro Excel
   const carregarExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
     const ficheiro = event.target.files?.[0];
     if (!ficheiro) return;
@@ -65,7 +76,7 @@ export default function App() {
         const dadosConvertidos = XLSX.utils.sheet_to_json(primeiraFolha);
 
         console.log("Dados do Excel lidos:", dadosConvertidos);
-        alert(`Sucesso! ${dadosConvertidos.length} registos lidos de ${ficheiro.name}`);
+        alert(`Sucesso! ${dadosConvertidos.length} registos lidos do ficheiro ${ficheiro.name}`);
       } catch (erro) {
         console.error("Erro ao ler excel:", erro);
         alert("Erro ao processar ficheiro Excel.");
@@ -74,10 +85,9 @@ export default function App() {
     leitor.readAsArrayBuffer(ficheiro);
   };
 
-  // Verifica se a licença do cliente selecionado está válida
+  // Verifica validade da licença
   const temAcesso = utilizadorAtual ? verificarLicenca(utilizadorAtual) : false;
 
-  // 3. INTERFACE PRINCIPAL
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans">
       
@@ -88,7 +98,6 @@ export default function App() {
             🌱 GreenScore Lite
           </div>
 
-          {/* BOTOES DAS 3 ABAS */}
           <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button 
               onClick={() => setAbaAtiva('admin')}
@@ -128,7 +137,7 @@ export default function App() {
           <div className="space-y-6">
             <h1 className="text-2xl font-bold">🛡️ Consola Máxima (Super Admin)</h1>
 
-            {/* Importador de Excel */}
+            {/* Módulo de Importação Excel */}
             <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
               <h2 className="font-semibold text-slate-200 mb-2">Importar Faturas / Dados (Excel)</h2>
               <input 
@@ -139,7 +148,7 @@ export default function App() {
               />
             </div>
 
-            {/* Tabela de Gestão de Licenças */}
+            {/* Gestão de Licenças */}
             <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
               <h2 className="font-semibold text-slate-200 mb-4">Gestão de Licenças de Clientes</h2>
               <div className="space-y-3">
@@ -173,7 +182,7 @@ export default function App() {
           </div>
         )}
 
-        {/* VERIFICAÇÃO DE LICENÇA PARA AS ABAS DO CLIENTE (2 E 3) */}
+        {/* ECRÃ DE BLOQUEIO SE LICENÇA EXPIRADA */}
         {abaAtiva !== 'admin' && !temAcesso && (
           <div className="min-h-[50vh] flex items-center justify-center p-4">
             <div className="bg-slate-800 border border-red-500/30 rounded-xl p-8 max-w-md text-center shadow-xl">
@@ -205,7 +214,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ABA 2: CARREGAMENTO DE DADOS PELO CLIENTE (SE LICENÇA ATIVA) */}
+        {/* ABA 2: CARREGAMENTO DE DADOS (SE LICENÇA ATIVA) */}
         {abaAtiva === 'cliente-input' && temAcesso && (
           <div className="space-y-6">
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
