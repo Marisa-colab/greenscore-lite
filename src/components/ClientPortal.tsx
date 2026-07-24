@@ -108,14 +108,14 @@ export function ClientPortal({ utilizadorAtual, onVoltarAdmin }: ClientPortalPro
     </div>
   );
 }
-Passo 2: Atualizar a chamada no src/App.tsx
-No teu src/App.tsx, procura a linha final onde está o <ClientPortal .../> (por volta da linha 240) e substitui essa linha por:
+2. No ficheiro src/App.tsx
+No ficheiro src/App.tsx, perto do fim (onde está a renderização da Aba 3), garante apenas que a linha do ClientPortal está escrita assim:
 
 TypeScript
-{/* ABA 3: DASHBOARD DO CLIENTE */}
-{abaAtiva === 'cliente-resultados' && temAcesso && (
-  <ClientPortal 
-    utilizadorAtual={utilizadorAtual} 
-    onVoltarAdmin={() => setAbaAtiva('admin')} 
-  />
-)}
+        {/* ABA 3: DASHBOARD DO CLIENTE */}
+        {abaAtiva === 'cliente-resultados' && temAcesso && (
+          <ClientPortal 
+            utilizadorAtual={utilizadorAtual} 
+            onVoltarAdmin={() => setAbaAtiva('admin')} 
+          />
+        )}
