@@ -3,52 +3,79 @@ import { verificarLicenca } from './utils';
 import { Utilizador } from './types';
 import * as XLSX from 'xlsx';
 
-export function App() {
+// 1. DADOS INICIAIS DE EXEMPLO (Caso o localStorage esteja vazio)
+const DADOS_INICIAIS: Utilizador[] = [
+  {
+    id: 'cli_ps_acores',
+    nome: 'Empresa Açores S.A.',
+    email: 'contacto@empresaacores.pt',
+    role: 'cliente',
+    licencaAtiva: true,
+    dataInicioLicenca: '2026-01-01',
+    duracaoMeses: 12,
+  },
+  {
+    id: 'cli_expirado_test',
+    nome: 'Cliente Exemplo (Expirado)',
+    email: 'suporte@expirado.com',
+    role: 'cliente',
+    licencaAtiva: false,
+    dataInicioLicenca: '2024-01-01',
+    duracaoMeses: 12,
+  }
+];
+
+export default function App() {
+  // 2. ESTADOS
   const [vista, setVista] = useState<'admin' | 'cliente'>('admin');
-  const [adminAba, setAdminAba] = useState<'clientes' | 'historico' | 'equipa'>('historico');
-  const [clienteAba, setClienteAba] = useState<'historico' | 'equipa' | 'postos'>('historico');
-  const [clientes, setClientes] = useState<Cliente[]>(() => {
+
+  // Estado dos Clientes (carrega do localStorage ou usa os dados iniciais)
+  const [clientes, setClientes] = useState<Utilizador[]>(() => {
     const saved = localStorage.getItem('gs_clientes');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) {
-        console.error(e);
+        console.error("Erro ao carregar clientes do localStorage:", e);
       }
     }
-    return []; // Se falhar, devolve um array vazio (e NÃO um ecrã)
+    return DADOS_INICIAIS;
   });
 
-  const [clienteAtivoId, setClienteAtivoId] = useState<string>(() => {
-    return localStorage.getItem('gs_ativo_id') || 'cli_ps_acores';
-  });
-  
-const carregarExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
+  // ID do cliente atualmente selecionado
+  const [clienteAtivoId, setClienteAtivoId] = useState<string>('cli_ps_acores');
+
+  // 3. FUNÇÃO DE IMPORTAÇÃO DE EXCEL
+  const carregarExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
     const ficheiro = event.target.files?.[0];
     if (!ficheiro) return;
 
     const leitor = new FileReader();
     leitor.onload = (e) => {
       try {
-     const dados = new Uint8Array(e.target?.result as ArrayBuffer);
-     const livro = XLSX.read(dados, { type: 'array' });
-     const primeiraFolha = livro.Sheets[livro.SheetNames[0]];
-     const dadosConvertidos = XLSX.utils.sheet_to_json(primeiraFolha);
+        const dados = new Uint8Array(e.target?.result as ArrayBuffer);
+        const livro = XLSX.read(dados, { type: 'array' });
+        const primeiraFolha = livro.Sheets[livro.SheetNames[0]];
+        const dadosConvertidos = XLSX.utils.sheet_to_json(primeiraFolha);
 
-        console.log("Dados do Excel importados com sucesso:", dadosConvertidos);
-        alert(`Sucesso! ${dadosConvertidos.length} linhas lidas do ficheiro ${ficheiro.name}`);
-        
-    } catch (erro) {
+        console.log("Dados do Excel lidos:", dadosConvertidos);
+        alert(`Sucesso! ${dadosConvertidos.length} registos lidos de ${ficheiro.name}`);
+      } catch (erro) {
         console.error("Erro ao ler excel:", erro);
-        alert("Erro ao ler o ficheiro de Excel. Verifica se o formato está correto.");
+        alert("Erro ao processar ficheiro Excel.");
       }
     };
     leitor.readAsArrayBuffer(ficheiro);
   };
-  
-  if (utilizadorAtual) {
+
+  // 4. VERIFICAÇÃO DE LICENÇA E SEGURANÇA
+  const utilizadorAtual = clientes.find((c) => c.id.toString() === clienteAtivoId);
+
+  // Se estivermos na vista de cliente e a licença estiver expirada, bloqueia o ecrã
+  if (vista === 'cliente' && utilizadorAtual) {
     const temAcesso = verificarLicenca(utilizadorAtual);
+
     if (!temAcesso) {
       return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-6 text-center">
@@ -57,20 +84,115 @@ const carregarExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
           </div>
           <h1 className="text-3xl font-bold mb-4 text-slate-100">Licença Expirada</h1>
           <div className="w-16 h-1 bg-green-500 mx-auto mb-6 rounded-full"></div>
-          <p className="text-slate-400 max-w-md text-lg leading-relaxed">
-            A licença de utilização do <span className="text-green-400 font-semibold">GreenScore Lite</span> para a sua entidade chegou ao fim. 
+          <p className="text-slate-400 max-w-md text-lg leading-relaxed mb-6">
+            A licença de utilização do <span className="text-green-400 font-semibold">GreenScore Lite</span> para a sua entidade chegou ao fim.
             <br/><br/>
-           </p>
+            Para reativar o acesso à plataforma, por favor contacte a administração.
+          </p>
+          <button 
+            onClick={() => setVista('admin')}
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm transition-colors border border-slate-700"
+          >
+            Voltar ao Painel Admin
+          </button>
         </div>
       );
     }
   }
 
+  // 5. INTERFACE
   return (
-    <div>
-      {/* Aqui fica o resto da tua aplicação GreenScore Lite... */}
+    <div className="min-h-screen bg-slate-900 text-white font-sans">
+      
+      {/* Barra de Navegação Superior */}
+      <nav className="bg-slate-950 border-b border-slate-800 p-4 flex justify-between items-center">
+        <div className="text-xl font-bold text-green-500 flex items-center gap-2">
+          🌱 GreenScore Lite
+        </div>
+        <div className="flex gap-3">
+          <button 
+            onClick={() => setVista('admin')}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${vista === 'admin' ? 'bg-green-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+          >
+            Consola Admin
+          </button>
+          <button 
+            onClick={() => setVista('cliente')}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${vista === 'cliente' ? 'bg-green-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+          >
+            Portal Cliente
+          </button>
+        </div>
+      </nav>
+
+      {/* Conteúdo Principal */}
+      <main className="p-6 max-w-7xl mx-auto">
+        {vista === 'admin' ? (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-bold">🛡️ Consola Máxima (Super Admin)</h1>
+
+            {/* Módulo de Importação Excel */}
+            <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
+              <h2 className="font-semibold text-slate-200 mb-2">Importar Faturas / Dados (Excel)</h2>
+              <input 
+                type="file" 
+                accept=".xlsx, .xls"
+                onChange={carregarExcel}
+                className="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-500 cursor-pointer"
+              />
+            </div>
+
+            {/* Lista de Clientes e Estado de Licença */}
+            <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
+              <h2 className="font-semibold text-slate-200 mb-4">Gestão de Licenças de Clientes</h2>
+              <div className="space-y-3">
+                {clientes.map((c) => {
+                  const ativa = verificarLicenca(c);
+                  return (
+                    <div key={c.id} className="flex justify-between items-center bg-slate-900 p-4 rounded-lg border border-slate-700">
+                      <div>
+                        <p className="font-medium text-slate-100">{c.nome}</p>
+                        <p className="text-xs text-slate-400">{c.email} | Início: {c.dataInicioLicenca} ({c.duracaoMeses} meses)</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`px-2.5 py-1 rounded text-xs font-semibold ${ativa ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                          {ativa ? 'Ativa' : 'Expirada'}
+                        </span>
+                        <button 
+                          onClick={() => {
+                            setClienteAtivoId(c.id);
+                            setVista('cliente');
+                          }}
+                          className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-600 transition-colors"
+                        >
+                          Testar Vista Deste Cliente
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
+              <div>
+                <h1 className="text-xl font-bold text-slate-100">📊 Portal do Cliente</h1>
+                <p className="text-slate-400 text-sm">Entidade: <span className="text-green-400 font-medium">{utilizadorAtual?.nome}</span></p>
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+                Acesso Autorizado
+              </span>
+            </div>
+
+            <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 text-slate-300">
+              <p>Bem-vindo à plataforma de monitorização do GreenScore Lite.</p>
+            </div>
+          </div>
+        )}
+      </main>
+
     </div>
   );
 }
-       
-   
