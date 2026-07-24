@@ -1,21 +1,19 @@
 import { Utilizador } from './types';
 
 export function verificarLicenca(utilizador: Utilizador): boolean {
-  // 1. Tu (Super Admin) tens acesso vitalício e irrestrito
-  if (utilizador.role === 'super_admin') return true;
-  
-  // 2. Se a licença foi cortada manualmente ou se os dados de subscrição não existem
-  if (!utilizador.licencaAtiva || !utilizador.dataInicioLicenca || !utilizador.duracaoMeses) {
+  if (!utilizador || !utilizador.licencaAtiva || !utilizador.dataInicioLicenca) {
     return false;
   }
 
-  // 3. Fazer as contas à data de validade
   const dataInicio = new Date(utilizador.dataInicioLicenca);
-  const dataFim = new Date(dataInicio);
-  dataFim.setMonth(dataFim.getMonth() + utilizador.duracaoMeses);
+  const duracaoMeses = utilizador.duracaoMeses || 12;
 
-  const hoje = new Date();
+  // Calcula a data exata em que a licença expira
+  const dataFim = new Date(dataInicio);
+  dataFim.setMonth(dataFim.getMonth() + duracaoMeses);
+
+  const agora = new Date();
   
-  // 4. Retorna 'true' (acesso permitido) se o dia de hoje for menor que a data de fim
-  return hoje < dataFim;
+  // Retorna true se a data atual for anterior ou igual à data de fim
+  return agora <= dataFim;
 }
