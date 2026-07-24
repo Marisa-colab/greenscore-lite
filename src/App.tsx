@@ -73,33 +73,53 @@ export default function App() {
   const utilizadorAtual = clientes.find((c) => c.id.toString() === clienteAtivoId);
 
   // Se estivermos na vista de cliente e a licença estiver expirada, bloqueia o ecrã
+  
   if (vista === 'cliente' && utilizadorAtual) {
     const temAcesso = verificarLicenca(utilizadorAtual);
 
     if (!temAcesso) {
       return (
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-6 text-center">
-          <div className="w-20 h-20 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center text-5xl mb-6 shadow-lg shadow-red-500/10">
-            🔒
+        <div className="min-h-[60vh] flex items-center justify-center p-4">
+          <div className="bg-slate-800 border border-red-500/30 rounded-xl p-8 max-w-md text-center shadow-xl">
+            {/* Ícone de Alerta */}
+            <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+              🚫
+            </div>
+
+            {/* Título */}
+            <h2 className="text-xl font-bold text-white mb-2">
+              Acesso Indisponível
+            </h2>
+
+            {/* Descrição */}
+            <p className="text-slate-300 text-sm mb-6">
+              A licença associada à entidade <strong className="text-white">{utilizadorAtual.nome}</strong> encontra-se expirada ou inativa.
+            </p>
+
+            {/* Detalhes da Licença */}
+            <div className="bg-slate-900/60 p-4 rounded-lg border border-slate-700/50 text-xs text-slate-400 mb-6 text-left space-y-2">
+              <p className="flex justify-between">
+                <span>Início do Contrato:</span>
+                <strong className="text-slate-200">{utilizadorAtual.dataInicioLicenca}</strong>
+              </p>
+              <p className="flex justify-between">
+                <span>Duração Contratada:</span>
+                <strong className="text-slate-200">{utilizadorAtual.duracaoMeses} meses</strong>
+              </p>
+              <p className="flex justify-between">
+                <span>Estado do Acesso:</span>
+                <strong className="text-red-400">Expirado</strong>
+              </p>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              Por favor, entre em contacto com a administração do GreenScore Lite para proceder à renovação da subscrição.
+            </p>
           </div>
-          <h1 className="text-3xl font-bold mb-4 text-slate-100">Licença Expirada</h1>
-          <div className="w-16 h-1 bg-green-500 mx-auto mb-6 rounded-full"></div>
-          <p className="text-slate-400 max-w-md text-lg leading-relaxed mb-6">
-            A licença de utilização do <span className="text-green-400 font-semibold">GreenScore Lite</span> para a sua entidade chegou ao fim.
-            <br/><br/>
-            Para reativar o acesso à plataforma, por favor contacte a administração.
-          </p>
-          <button 
-            onClick={() => setVista('admin')}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm transition-colors border border-slate-700"
-          >
-            Voltar ao Painel Admin
-          </button>
         </div>
       );
     }
   }
-
   // 5. INTERFACE
   return (
     <div className="min-h-screen bg-slate-900 text-white font-sans">
