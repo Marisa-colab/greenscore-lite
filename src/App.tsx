@@ -6,7 +6,7 @@ import { ClientPortal } from './components/ClientPortal';
 interface Posto {
   id: number;
   clienteId: number;
-  nomePosto: string; // Ex: Posto Angra, Posto Praia
+  nomePosto: string;
   cpe: string;
   funcionarioResponsavel: string;
 }
@@ -43,7 +43,7 @@ const DADOS_INICIAIS_POSTOS: Posto[] = [
     clienteId: 1,
     nomePosto: 'Posto Angra do Heroísmo',
     cpe: 'PT0002000012345678FA',
-    funcionarioResponsavel: 'Zelia',
+    funcionarioResponsavel: 'Zélia',
   },
   {
     id: 102,
@@ -208,7 +208,7 @@ export default function App() {
                       <label className="block text-xs text-slate-300 mb-1">Funcionário Responsável</label>
                       <input 
                         type="text" 
-                        placeholder="Ex: zelia" 
+                        placeholder="Ex: Maria Silva" 
                         value={novoFuncionario} 
                         onChange={(e) => setNovoFuncionario(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
