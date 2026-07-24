@@ -20,6 +20,16 @@ export interface Posto {
   grupo_cobertura: string;
   meta_poupanca_percentual: number;
 }
+export interface RelatorioDados {
+  periodo: string;               // ex: "Julho 2026"
+  consumoRealKWh: number;        // Consumo medido no mês
+  consumoMetaKWh: number;        // Meta definida para o cliente
+  poupancaKWh: number;           // Diferença (Meta - Real)
+  poupancaEuros: number;         // Valor financeiro economizado (€)
+  co2EvitadoKg: number;          // Redução da pegada de carbono (kg CO₂)
+  creditosGanhosMes: number;     // Créditos Verdes gerados no mês
+  totalCreditosAcumulados: number; // Saldo total da empresa
+}
 
 export interface MedicaoEnergia {
   id: number;
