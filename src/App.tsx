@@ -30,15 +30,15 @@ export interface Cliente {
 }
 
 const CLIENTE_INICIAL_PS_ACORES: Cliente = {
-  id: 'cli_ps_acores',
-  nome: 'PS-Açores',
+  id: 'cli_ps_angra',
+  nome: 'PS-Angra',
   apiKey: 'gs_live_sh685m37',
   baselineKwh: 210,
   limiteLeituras: 1000,
   creditosTotais: 0,
   postos: [
     {
-      id: 'pos_ps_acores_1',
+      id: 'pos_ps_angra_1',
       nome: 'Sede / Instalação Principal',
       cpe: 'PT0008000012345678AP',
       morada: 'Angra do Heroísmo, Ilha Terceira',
@@ -51,8 +51,8 @@ const CLIENTE_INICIAL_PS_ACORES: Cliente = {
     { id: 'h2', mesAno: 'Fevereiro 2025', cpe: 'PT0008000012345678AP', kwhConsumidos: 195, kwhPoupados: 15, creditosGerados: 150 }
   ],
   funcionarios: [
-    { id: 'f1', nome: 'Maria Santos', departamento: 'Administrativo', creditosGanhos: 200 },
-    { id: 'f2', nome: 'João Silva', departamento: 'Operações', creditosGanhos: 250 }
+    { id: 'f1', nome: 'Marisa Reis', departamento: 'Administrativo', creditosGanhos: 200 },
+    { id: 'f2', nome: 'Zélia Costa', departamento: 'Operações', creditosGanhos: 250 }
   ]
 };
 
