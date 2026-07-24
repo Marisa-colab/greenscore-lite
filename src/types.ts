@@ -7,6 +7,10 @@ export interface Utilizador {
   api_key?: string;
   limite_mensal?: number;
   kwh_historico_ano_anterior?: number;
+  role: 'super_admin' | 'cliente';
+  licencaAtiva: boolean;
+  dataInicioLicenca?: string; 
+  duracaoMeses?: number;     
 }
 
 export interface Posto {
