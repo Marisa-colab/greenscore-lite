@@ -8,12 +8,10 @@ export function verificarLicenca(utilizador: Utilizador): boolean {
   const dataInicio = new Date(utilizador.dataInicioLicenca);
   const duracaoMeses = utilizador.duracaoMeses || 12;
 
-  // Calcula a data exata em que a licença expira
-  const dataFim = new Date(dataInicio);
+   const dataFim = new Date(dataInicio);
   dataFim.setMonth(dataFim.getMonth() + duracaoMeses);
 
   const agora = new Date();
-  
-  // Retorna true se a data atual for anterior ou igual à data de fim
+
   return agora <= dataFim;
 }
