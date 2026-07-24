@@ -1,114 +1,121 @@
 import React from 'react';
 import { Utilizador } from '../types';
-import { verificarLicenca } from '../utils';
-import { VoiceAssistantCard } from './VoiceAssistantCard';
-import { TelecontagemForm } from './TelecontagemForm';
-import { PostosList } from './PostosList';
-import { RelatorioModule } from './RelatorioModule';
 
 interface ClientPortalProps {
   utilizadorAtual?: Utilizador;
-  currentUser?: Utilizador; // Suporte para ambas as convenções de nome
+  onVoltarAdmin?: () => void;
 }
 
-export function ClientPortal({ utilizadorAtual, currentUser }: ClientPortalProps) {
-  const user = utilizadorAtual || currentUser;
-
-  // 1. Caso não haja utilizador selecionado
-  if (!user) {
+export function ClientPortal({ utilizadorAtual, onVoltarAdmin }: ClientPortalProps) {
+  // Proteção contra dados inexistentes
+  if (!utilizadorAtual) {
     return (
-      <div className="p-8 text-center text-slate-400 bg-slate-900/50 border border-slate-800 rounded-2xl">
-        Nenhum cliente selecionado. Seleciona um cliente na barra superior.
+      <div className="p-8 text-center bg-slate-900 border border-slate-800 rounded-xl space-y-4">
+        <p className="text-slate-400">Nenhum cliente selecionado de momento.</p>
+        {onVoltarAdmin && (
+          <button 
+            onClick={onVoltarAdmin}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded-lg font-semibold"
+          >
+            ← Voltar à Consola Admin
+          </button>
+        )}
       </div>
     );
   }
 
-  const temAcesso = verificarLicenca(user);
-
-  // 2. Ecrã de Bloqueio: Licença Expirada / Inativa
-  if (!temAcesso) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center p-4">
-        <div className="bg-slate-800 border border-red-500/30 rounded-xl p-8 max-w-md text-center shadow-xl">
-          <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-            🚫
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">
-            Acesso Indisponível
-          </h2>
-          <p className="text-slate-300 text-sm mb-6">
-            A licença associada à entidade <strong className="text-white">{user.nome}</strong> encontra-se expirada ou inativa.
-          </p>
-          <div className="bg-slate-900/60 p-4 rounded-lg border border-slate-700/50 text-xs text-slate-400 mb-6 text-left space-y-2">
-            <p className="flex justify-between">
-              <span>Início do Contrato:</span>
-              <strong className="text-slate-200">{user.dataInicioLicenca || 'N/A'}</strong>
-            </p>
-            <p className="flex justify-between">
-              <span>Duração Contratada:</span>
-              <strong className="text-slate-200">{user.duracaoMeses || 12} meses</strong>
-            </p>
-            <p className="flex justify-between">
-              <span>Estado do Acesso:</span>
-              <strong className="text-red-400 font-bold">Expirado</strong>
-            </p>
-          </div>
-          <p className="text-xs text-slate-400">
-            Por favor, entre em contacto com a administração do GreenScore Lite para proceder à renovação da subscrição.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // 3. Vista do Cliente Autorizado (Dashboard Completo)
   return (
-    <div className="space-y-8">
-      {/* Cabeçalho */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-6">
+      
+      {/* CABEÇALHO DO RELATÓRIO COM BOTÃO DE VOLTAR */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900 p-6 rounded-2xl border border-slate-800 gap-4">
         <div>
-          <span className="text-xs font-mono uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-md">
-            Acesso Autorizado
+          <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+            Relatório de Desempenho ESG
           </span>
-          <h2 className="text-2xl font-bold text-white mt-2">{user.nome}</h2>
-          <p className="text-slate-400 text-sm">{user.email}</p>
+          <h1 className="text-2xl font-bold text-white mt-1">
+            {utilizadorAtual.nome}
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">
+            CPE: <span className="text-slate-200 font-mono">{utilizadorAtual.cpe || 'N/D'}</span> | Contacto: {utilizadorAtual.email}
+          </p>
         </div>
-        <div className="bg-slate-800 border border-slate-700 px-4 py-3 rounded-xl text-right">
-          <p className="text-xs text-slate-400">Pontuação Atual</p>
-          <p className="text-2xl font-bold text-emerald-400">🌱 GreenScore 84/100</p>
+
+        {/* BOTÃO VOLTAR PARA A CONSOLA ADMIN */}
+        {onVoltarAdmin && (
+          <button 
+            onClick={onVoltarAdmin}
+            className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs px-4 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2 shadow-sm hover:border-slate-600"
+          >
+            ← Voltar à Consola Admin
+          </button>
+        )}
+      </div>
+
+      {/* CARTÕES DE METRICAS E KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-slate-900 p-5 rounded-xl border border-slate-800">
+          <p className="text-xs text-slate-400 font-medium">Créditos Acumulados</p>
+          <p className="text-2xl font-bold text-emerald-400 mt-2">
+            {utilizadorAtual.creditos_acumulados || 0} <span className="text-xs text-slate-400">pts</span>
+          </p>
+          <p className="text-[11px] text-emerald-500/80 mt-1">🌱 Prontos a resgatar</p>
+        </div>
+
+        <div className="bg-slate-900 p-5 rounded-xl border border-slate-800">
+          <p className="text-xs text-slate-400 font-medium">Consumo Atual (Mês)</p>
+          <p className="text-2xl font-bold text-white mt-2">
+            8 450 <span className="text-xs text-slate-400">kWh</span>
+          </p>
+          <p className="text-[11px] text-emerald-400 mt-1">↓ 12% vs. mês anterior</p>
+        </div>
+
+        <div className="bg-slate-900 p-5 rounded-xl border border-slate-800">
+          <p className="text-xs text-slate-400 font-medium">Poupança Estimada</p>
+          <p className="text-2xl font-bold text-emerald-400 mt-2">
+            340,00 €
+          </p>
+          <p className="text-[11px] text-slate-400 mt-1">Calculado sobre tarifa base</p>
+        </div>
+
+        <div className="bg-slate-900 p-5 rounded-xl border border-slate-800">
+          <p className="text-xs text-slate-400 font-medium">CO₂ Evitado</p>
+          <p className="text-2xl font-bold text-cyan-400 mt-2">
+            1 250 <span className="text-xs text-slate-400">kg</span>
+          </p>
+          <p className="text-[11px] text-cyan-500/80 mt-1">Impacto ecológico positivo</p>
         </div>
       </div>
 
-      {/* Cards de Métricas (KPIs) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
-          <p className="text-slate-400 text-sm font-medium">Consumo Total Registado</p>
-          <p className="text-3xl font-bold text-white mt-2">12.450 <span className="text-lg font-normal text-slate-400">kWh</span></p>
-          <span className="text-xs text-emerald-400 font-medium mt-1 block">↓ -4% em relação ao mês anterior</span>
-        </div>
-
-        <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
-          <p className="text-slate-400 text-sm font-medium">Estimativa de Pegada CO₂</p>
-          <p className="text-3xl font-bold text-white mt-2">2,8 <span className="text-lg font-normal text-slate-400">toneladas</span></p>
-          <span className="text-xs text-emerald-400 font-medium mt-1 block">Em conformidade com as metas ESG</span>
-        </div>
-
-        <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
-          <p className="text-slate-400 text-sm font-medium">Estado da Licença</p>
-          <p className="text-3xl font-bold text-emerald-400 mt-2">Ativa</p>
-          <span className="text-xs text-slate-400 font-medium mt-1 block">Válida por {user.duracaoMeses || 12} meses</span>
+      {/* SECÇÃO DE PROGRESSO DA META */}
+      <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+        <h3 className="text-lg font-bold text-white">Eficiência Energética do Período</h3>
+        <p className="text-xs text-slate-400">
+          Acompanhamento do consumo atual em relação à meta contratada para atribuição de novos Créditos Verdes.
+        </p>
+        
+        <div className="bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-slate-400">Meta de Redução de Consumo</span>
+            <span className="text-emerald-400 font-bold">85% Atingido</span>
+          </div>
+          <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+            <div className="bg-emerald-500 h-3 rounded-full" style={{ width: '85%' }}></div>
+          </div>
         </div>
       </div>
 
-      {/* Assistente e Formulários */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <VoiceAssistantCard />
-        <TelecontagemForm />
-      </div>
-
-      {/* Lista de Postos de Consumo */}
-      <PostosList />
     </div>
   );
 }
-export default ClientPortal;
+Passo 2: Atualizar a chamada no src/App.tsx
+No teu src/App.tsx, procura a linha final onde está o <ClientPortal .../> (por volta da linha 240) e substitui essa linha por:
+
+TypeScript
+{/* ABA 3: DASHBOARD DO CLIENTE */}
+{abaAtiva === 'cliente-resultados' && temAcesso && (
+  <ClientPortal 
+    utilizadorAtual={utilizadorAtual} 
+    onVoltarAdmin={() => setAbaAtiva('admin')} 
+  />
+)}
