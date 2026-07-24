@@ -10,12 +10,27 @@ export interface Utilizador {
   role: 'super_admin' | 'cliente';
   licencaAtiva: boolean;
   dataInicioLicenca?: string; 
-  duracaoMeses?: number;     
+  duracaoMeses?: number;      
 }
 
 export interface Posto {
   id: number;
   nome: string;
+  concelho: string;
+  cpe?: string;
+  consumoKWh?: number;
+}
+
+export interface RelatorioDados {
+  periodo: string;
+  consumoRealKWh: number;
+  consumoMetaKWh: number;
+  poupancaKWh: number;
+  poupancaEuros: number;
+  co2EvitadoKg: number;
+  creditosGanhosMes: number;
+  totalCreditosAcumulados: number;
+}
   concelho: string;
   grupo_cobertura: string;
   meta_poupanca_percentual: number;
