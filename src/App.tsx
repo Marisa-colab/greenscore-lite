@@ -16,7 +16,7 @@ function verificarLicenca(u: Utilizador): boolean {
   return new Date() <= fim;
 }
 
-// Dados de exemplo com IDs numéricos (de acordo com o types.ts)
+// Dados de exemplo corretos e limpos
 const DADOS_INICIAIS: Utilizador[] = [
   {
     id: 1,
@@ -51,7 +51,10 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        // Valida se os dados em memória têm o formato correto (CPE e Data)
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].dataInicioLicenca) {
+          return parsed;
+        }
       } catch (e) {
         console.error("Erro ao carregar do localStorage:", e);
       }
@@ -63,12 +66,20 @@ export default function App() {
   const [clienteAtivoId, setClienteAtivoId] = useState<number>(1);
 
   // Cliente atual selecionado
-  const utilizadorAtual = clientes.find((c) => c.id === clienteAtivoId) || clientes[0];
+  const utilizadorAtual = clientes.find((c) => Number(c.id) === clienteAtivoId) || clientes[0];
 
-  // Função para alternar o estado da licença diretamente na consola Admin
+  // Função para restaurar os dados limpos de teste
+  const restaurarDadosIniciais = () => {
+    localStorage.removeItem('gs_clientes');
+    setClientes(DADOS_INICIAIS);
+    setClienteAtivoId(1);
+    alert("Dados de teste restaurados com sucesso!");
+  };
+
+  // Alternar o estado da licença
   const alternarEstadoLicenca = (id: number) => {
     const novosClientes = clientes.map((c) => {
-      if (c.id === id) {
+      if (Number(c.id) === id) {
         return { ...c, licencaAtiva: !c.licencaAtiva };
       }
       return c;
@@ -164,7 +175,15 @@ export default function App() {
         {/* ABA 1: CONSOLA ADMIN */}
         {abaAtiva === 'admin' && (
           <div className="space-y-6">
-            <h1 className="text-2xl font-bold">🛡️ Consola Máxima (Super Admin)</h1>
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold">🛡️ Consola Máxima (Super Admin)</h1>
+              <button 
+                onClick={restaurarDadosIniciais}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs px-3 py-2 rounded-lg font-medium transition-all"
+              >
+                🔄 Reset / Restaurar Dados de Teste
+              </button>
+            </div>
 
             {/* Importação Excel */}
             <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
@@ -183,7 +202,7 @@ export default function App() {
               <div className="space-y-3">
                 {clientes.map((c) => {
                   const ativa = verificarLicenca(c);
-                  const selecionado = c.id === clienteAtivoId;
+                  const selecionado = Number(c.id) === clienteAtivoId;
                   return (
                     <div 
                       key={c.id} 
@@ -201,14 +220,13 @@ export default function App() {
                           )}
                         </div>
                         <p className="text-xs text-slate-400">
-                          {c.email} | CPE: {c.cpe} | Início: {c.dataInicioLicenca} ({c.duracaoMeses} meses)
+                          {c.email} | CPE: {c.cpe || 'N/D'} | Início: {c.dataInicioLicenca || 'N/D'} ({c.duracaoMeses || 12} meses)
                         </p>
                       </div>
 
                       <div className="flex items-center gap-3">
-                        {/* Botão para ativar/desativar com 1 clique */}
                         <button
-                          onClick={() => alternarEstadoLicenca(c.id)}
+                          onClick={() => alternarEstadoLicenca(Number(c.id))}
                           className={`px-3 py-1.5 rounded text-xs font-semibold border transition-all ${
                             ativa 
                               ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30' 
@@ -218,10 +236,9 @@ export default function App() {
                           {ativa ? '✓ Licença Ativa (Clique p/ Expirar)' : '✕ Expirada (Clique p/ Ativar)'}
                         </button>
 
-                        {/* Botão Selecionar e Ver Vista */}
                         <button 
                           onClick={() => {
-                            setClienteAtivoId(c.id);
+                            setClienteAtivoId(Number(c.id));
                             setAbaAtiva('cliente-resultados');
                           }}
                           className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1.5 rounded transition-colors"
@@ -237,7 +254,7 @@ export default function App() {
           </div>
         )}
 
-        {/* BLOQUEIO DE SEGURANÇA (APENAS PARA VISTA DE CLIENTE COM LICENÇA EXPIRADA) */}
+        {/* BLOQUEIO DE SEGURANÇA (APENAS SE A LICENÇA DO CLIENTE SELECCIONADO ESTIVER EXPIRADA) */}
         {abaAtiva !== 'admin' && !temAcesso && (
           <div className="min-h-[50vh] flex items-center justify-center p-4">
             <div className="bg-slate-800 border border-red-500/30 rounded-xl p-8 max-w-md text-center shadow-xl">
