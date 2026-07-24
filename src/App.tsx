@@ -50,7 +50,7 @@ const DADOS_INICIAIS_POSTOS: Posto[] = [
     clienteId: 1,
     nomePosto: 'Posto Praia da Vitória',
     cpe: 'PT0002000088888888FB',
-    funcionarioResponsavel: 'Ricardo,
+    funcionarioResponsavel: 'Ricardo',
   }
 ];
 
