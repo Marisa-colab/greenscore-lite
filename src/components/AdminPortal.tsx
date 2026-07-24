@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx'; // Importante para ler o Excel
 import React, { useState } from 'react';
 import { Utilizador } from '../types';
+import { RelatorioModule } from './RelatorioModule';
 
 interface AdminPortalProps {
   utilizadores: Utilizador[];
@@ -227,6 +228,7 @@ export function AdminPortal({ utilizadores, setUtilizadores, utilizadorAtual, se
                               : 'bg-emerald-600 hover:bg-emerald-500 text-white'
                           }`}
                         >
+                         <RelatorioModule nomeEmpresa={utilizadorAtual.nome} /> 
                           {isSelected ? 'Selecionado' : 'Ativar Cliente'}
                         </button>
                       )}
