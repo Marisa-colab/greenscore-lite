@@ -1,6 +1,6 @@
 import React from 'react';
 import { Utilizador } from '../types';
-import { verificarLicenca } from '../utils/licenca';
+import { verificarLicenca } from '../utils';
 import { VoiceAssistantCard } from './VoiceAssistantCard';
 import { TelecontagemForm } from './TelecontagemForm';
 import { PostosList } from './PostosList';
