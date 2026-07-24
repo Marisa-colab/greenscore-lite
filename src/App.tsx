@@ -208,7 +208,7 @@ export default function App() {
                       <label className="block text-xs text-slate-300 mb-1">Funcionário Responsável</label>
                       <input 
                         type="text" 
-                        placeholder="Ex: Maria Silva" 
+                        placeholder="Ex: zelia" 
                         value={novoFuncionario} 
                         onChange={(e) => setNovoFuncionario(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
