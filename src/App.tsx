@@ -59,11 +59,9 @@ export default function App() {
   const [clientes] = useState<Utilizador[]>(DADOS_INICIAIS_CLIENTES);
   const [clienteAtivoId, setClienteAtivoId] = useState<number>(1);
   
-  // Estado dos Postos / Contadores
   const [postos, setPostos] = useState<Posto[]>(DADOS_INICIAIS_POSTOS);
   const [mostrarFormNovoPosto, setMostrarFormNovoPosto] = useState(false);
 
-  // Formulário de Novo Posto
   const [novoNomePosto, setNovoNomePosto] = useState('');
   const [novoCpe, setNovoCpe] = useState('');
   const [novoFuncionario, setNovoFuncionario] = useState('');
@@ -71,8 +69,7 @@ export default function App() {
   const utilizadorAtual = clientes.find((c) => Number(c.id) === clienteAtivoId) || clientes[0];
   const postosDoCliente = postos.filter((p) => p.clienteId === clienteAtivoId);
 
-  // Adicionar Novo Posto
-  const adicionarPosto = (e: React.FormEvent) => {
+    const adicionarPosto = (e: React.FormEvent) => {
     e.preventDefault();
     if (!novoNomePosto || !novoCpe) {
       alert("Por favor preencha pelo menos o Nome do Posto e o CPE.");
