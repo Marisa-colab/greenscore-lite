@@ -7,7 +7,7 @@ interface ClientPortalProps {
 }
 
 export function ClientPortal({ utilizadorAtual, onVoltarAdmin }: ClientPortalProps) {
-  // Proteção contra dados inexistentes
+  
   if (!utilizadorAtual) {
     return (
       <div className="p-8 text-center bg-slate-900 border border-slate-800 rounded-xl space-y-4">
