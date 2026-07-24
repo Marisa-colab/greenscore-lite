@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import { Utilizador } from './types';
 import { ClientPortal } from './components/ClientPortal';
 
-// Função de verificação de licença integrada (evita erros de import de ficheiros)
+// Função de verificação de licença
 function verificarLicenca(u: Utilizador): boolean {
   if (!u) return false;
   if (u.licencaAtiva === false) return false;
@@ -16,22 +16,26 @@ function verificarLicenca(u: Utilizador): boolean {
   return new Date() <= fim;
 }
 
-// Dados de exemplo para inicialização
+// Dados de exemplo com IDs numéricos (de acordo com o types.ts)
 const DADOS_INICIAIS: Utilizador[] = [
   {
-    id: 'cli_ps_acores',
-    nome: 'Empresa Açores S.A.',
-    email: 'contacto@empresaacores.pt',
-    role: 'CLIENTE',
+    id: 1,
+    nome: 'Empresa PS-Açores',
+    email: 'contacto@psacores.pt',
+    cpe: 'PT0002000012345678FA',
+    creditos_acumulados: 142,
+    role: 'cliente',
     licencaAtiva: true,
     dataInicioLicenca: '2026-01-01',
     duracaoMeses: 12,
   },
   {
-    id: 'cli_exemplo_expirado',
+    id: 2,
     nome: 'Cliente Exemplo (Expirado)',
     email: 'suporte@expirado.com',
-    role: 'CLIENTE',
+    cpe: 'PT0002000087654321FB',
+    creditos_acumulados: 0,
+    role: 'cliente',
     licencaAtiva: false,
     dataInicioLicenca: '2024-01-01',
     duracaoMeses: 12,
@@ -39,10 +43,9 @@ const DADOS_INICIAIS: Utilizador[] = [
 ];
 
 export default function App() {
-  // Estado para controlar a aba ativa: 'admin' (Aba 1) | 'cliente-input' (Aba 2) | 'cliente-resultados' (Aba 3)
-  const [abaAtiva, setAbaAtiva] = useState<'admin' | 'cliente-input' | 'cliente-resultados'>('cliente-resultados');
+  const [abaAtiva, setAbaAtiva] = useState<'admin' | 'cliente-input' | 'cliente-resultados'>('admin');
 
-  // Estado dos Clientes (carrega do localStorage ou usa DADOS_INICIAIS)
+  // Estado dos Clientes
   const [clientes, setClientes] = useState<Utilizador[]>(() => {
     const saved = localStorage.getItem('gs_clientes');
     if (saved) {
@@ -50,17 +53,29 @@ export default function App() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch (e) {
-        console.error("Erro ao carregar clientes do localStorage:", e);
+        console.error("Erro ao carregar do localStorage:", e);
       }
     }
     return DADOS_INICIAIS;
   });
 
-  // ID do cliente atualmente selecionado
-  const [clienteAtivoId, setClienteAtivoId] = useState<string>('cli_ps_acores');
+  // ID do cliente selecionado (Padrão: 1)
+  const [clienteAtivoId, setClienteAtivoId] = useState<number>(1);
 
-  // Cliente selecionado
-  const utilizadorAtual = clientes.find((c) => c.id.toString() === clienteAtivoId);
+  // Cliente atual selecionado
+  const utilizadorAtual = clientes.find((c) => c.id === clienteAtivoId) || clientes[0];
+
+  // Função para alternar o estado da licença diretamente na consola Admin
+  const alternarEstadoLicenca = (id: number) => {
+    const novosClientes = clientes.map((c) => {
+      if (c.id === id) {
+        return { ...c, licencaAtiva: !c.licencaAtiva };
+      }
+      return c;
+    });
+    setClientes(novosClientes);
+    localStorage.setItem('gs_clientes', JSON.stringify(novosClientes));
+  };
 
   // Leitura de ficheiro Excel
   const carregarExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,29 +90,43 @@ export default function App() {
         const primeiraFolha = livro.Sheets[livro.SheetNames[0]];
         const dadosConvertidos = XLSX.utils.sheet_to_json(primeiraFolha);
 
-        console.log("Dados do Excel lidos:", dadosConvertidos);
-        alert(`Sucesso! ${dadosConvertidos.length} registos lidos do ficheiro ${ficheiro.name}`);
+        alert(`Sucesso! ${dadosConvertidos.length} registos lidos de ${ficheiro.name}`);
       } catch (erro) {
-        console.error("Erro ao ler excel:", erro);
         alert("Erro ao processar ficheiro Excel.");
       }
     };
     leitor.readAsArrayBuffer(ficheiro);
   };
 
-  // Verifica validade da licença
   const temAcesso = utilizadorAtual ? verificarLicenca(utilizadorAtual) : false;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans">
       
-      {/* BARRA DE NAVEGAÇÃO SUPERIOR (3 ABAS) */}
+      {/* BARRA DE NAVEGAÇÃO SUPERIOR */}
       <nav className="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-xl font-bold text-emerald-400 flex items-center gap-2">
             🌱 GreenScore Lite
           </div>
 
+          {/* MENU DE SELEÇÃO RÁPIDA DE CLIENTE (ADMIN) */}
+          <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+            <span className="text-xs text-slate-400 font-medium">Cliente Ativo:</span>
+            <select 
+              value={clienteAtivoId} 
+              onChange={(e) => setClienteAtivoId(Number(e.target.value))}
+              className="bg-slate-900 text-emerald-400 text-xs font-semibold px-2 py-1 rounded border border-slate-700 focus:outline-none cursor-pointer"
+            >
+              {clientes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nome} ({verificarLicenca(c) ? 'Ativa' : 'Expirada'})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* ABAS DO SISTEMA */}
           <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button 
               onClick={() => setAbaAtiva('admin')}
@@ -105,7 +134,7 @@ export default function App() {
                 abaAtiva === 'admin' ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'
               }`}
             >
-              1. Consola Admin (Acesso Total)
+              1. Consola Admin
             </button>
 
             <button 
@@ -137,7 +166,7 @@ export default function App() {
           <div className="space-y-6">
             <h1 className="text-2xl font-bold">🛡️ Consola Máxima (Super Admin)</h1>
 
-            {/* Módulo de Importação Excel */}
+            {/* Importação Excel */}
             <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
               <h2 className="font-semibold text-slate-200 mb-2">Importar Faturas / Dados (Excel)</h2>
               <input 
@@ -148,30 +177,56 @@ export default function App() {
               />
             </div>
 
-            {/* Gestão de Licenças */}
+            {/* Gestão e Controlo de Licenças */}
             <div className="bg-slate-800 p-5 rounded-xl border border-slate-700">
-              <h2 className="font-semibold text-slate-200 mb-4">Gestão de Licenças de Clientes</h2>
+              <h2 className="font-semibold text-slate-200 mb-4">Gestão de Licenças e Clientes</h2>
               <div className="space-y-3">
                 {clientes.map((c) => {
                   const ativa = verificarLicenca(c);
+                  const selecionado = c.id === clienteAtivoId;
                   return (
-                    <div key={c.id} className="flex justify-between items-center bg-slate-900 p-4 rounded-lg border border-slate-700">
+                    <div 
+                      key={c.id} 
+                      className={`flex flex-col md:flex-row justify-between items-start md:items-center p-4 rounded-lg border transition-all gap-4 ${
+                        selecionado ? 'bg-slate-900 border-emerald-500/50 shadow-md' : 'bg-slate-900/60 border-slate-700/50'
+                      }`}
+                    >
                       <div>
-                        <p className="font-medium text-slate-100">{c.nome}</p>
-                        <p className="text-xs text-slate-400">{c.email} | Início: {c.dataInicioLicenca} ({c.duracaoMeses} meses)</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-slate-100">{c.nome}</p>
+                          {selecionado && (
+                            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold">
+                              SELECIONADO
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400">
+                          {c.email} | CPE: {c.cpe} | Início: {c.dataInicioLicenca} ({c.duracaoMeses} meses)
+                        </p>
                       </div>
+
                       <div className="flex items-center gap-3">
-                        <span className={`px-2.5 py-1 rounded text-xs font-semibold ${ativa ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
-                          {ativa ? 'Ativa' : 'Expirada'}
-                        </span>
+                        {/* Botão para ativar/desativar com 1 clique */}
+                        <button
+                          onClick={() => alternarEstadoLicenca(c.id)}
+                          className={`px-3 py-1.5 rounded text-xs font-semibold border transition-all ${
+                            ativa 
+                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30' 
+                              : 'bg-red-500/20 text-red-400 border-red-500/30 hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/30'
+                          }`}
+                        >
+                          {ativa ? '✓ Licença Ativa (Clique p/ Expirar)' : '✕ Expirada (Clique p/ Ativar)'}
+                        </button>
+
+                        {/* Botão Selecionar e Ver Vista */}
                         <button 
                           onClick={() => {
                             setClienteAtivoId(c.id);
                             setAbaAtiva('cliente-resultados');
                           }}
-                          className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-600 transition-colors"
+                          className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1.5 rounded transition-colors"
                         >
-                          Testar Vista Deste Cliente
+                          Ver Vista Deste Cliente →
                         </button>
                       </div>
                     </div>
@@ -182,7 +237,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ECRÃ DE BLOQUEIO SE LICENÇA EXPIRADA */}
+        {/* BLOQUEIO DE SEGURANÇA (APENAS PARA VISTA DE CLIENTE COM LICENÇA EXPIRADA) */}
         {abaAtiva !== 'admin' && !temAcesso && (
           <div className="min-h-[50vh] flex items-center justify-center p-4">
             <div className="bg-slate-800 border border-red-500/30 rounded-xl p-8 max-w-md text-center shadow-xl">
@@ -193,54 +248,43 @@ export default function App() {
               <p className="text-slate-300 text-sm mb-6">
                 A licença associada à entidade <strong className="text-white">{utilizadorAtual?.nome}</strong> encontra-se expirada ou inativa.
               </p>
-              <div className="bg-slate-900/60 p-4 rounded-lg border border-slate-700/50 text-xs text-slate-400 mb-6 text-left space-y-2">
-                <p className="flex justify-between">
-                  <span>Início do Contrato:</span>
-                  <strong className="text-slate-200">{utilizadorAtual?.dataInicioLicenca}</strong>
-                </p>
-                <p className="flex justify-between">
-                  <span>Duração Contratada:</span>
-                  <strong className="text-slate-200">{utilizadorAtual?.duracaoMeses} meses</strong>
-                </p>
-                <p className="flex justify-between">
-                  <span>Estado do Acesso:</span>
-                  <strong className="text-red-400 font-bold">Expirado</strong>
-                </p>
-              </div>
-              <p className="text-xs text-slate-400">
-                Por favor, entre em contacto com a administração do GreenScore Lite para proceder à renovação da subscrição.
-              </p>
+              <button 
+                onClick={() => setAbaAtiva('admin')}
+                className="bg-slate-700 hover:bg-slate-600 text-white text-xs px-4 py-2 rounded-lg font-medium transition-all mb-4"
+              >
+                ← Voltar à Consola Admin para Ativar Licença
+              </button>
             </div>
           </div>
         )}
 
-        {/* ABA 2: CARREGAMENTO DE DADOS (SE LICENÇA ATIVA) */}
+        {/* ABA 2: INTRODUÇÃO DE DADOS */}
         {abaAtiva === 'cliente-input' && temAcesso && (
           <div className="space-y-6">
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
               <h2 className="text-xl font-bold text-white mb-2">Carregamento de Dados e Faturas</h2>
               <p className="text-sm text-slate-400 mb-6">
-                Entidade: <strong className="text-emerald-400">{utilizadorAtual?.nome}</strong>
+                Entidade Ativa: <strong className="text-emerald-400">{utilizadorAtual?.nome}</strong>
               </p>
               
               <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Início da Licença (Read-Only)</label>
+                    <label className="block text-xs text-slate-400 mb-1">CPE da Instalação</label>
                     <input 
                       type="text" 
                       disabled 
-                      value={utilizadorAtual?.dataInicioLicenca || ''} 
-                      className="w-full bg-slate-900 border border-slate-800 text-slate-500 rounded-lg p-2.5 text-sm cursor-not-allowed"
+                      value={utilizadorAtual?.cpe || ''} 
+                      className="w-full bg-slate-900 border border-slate-800 text-slate-400 rounded-lg p-2.5 text-sm cursor-not-allowed"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Duração Contratada</label>
+                    <label className="block text-xs text-slate-400 mb-1">Créditos Acumulados</label>
                     <input 
                       type="text" 
                       disabled 
-                      value={`${utilizadorAtual?.duracaoMeses || 12} Meses`} 
-                      className="w-full bg-slate-900 border border-slate-800 text-slate-500 rounded-lg p-2.5 text-sm cursor-not-allowed"
+                      value={`${utilizadorAtual?.creditos_acumulados || 0} Créditos Verdes`} 
+                      className="w-full bg-slate-900 border border-slate-800 text-slate-400 rounded-lg p-2.5 text-sm cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -263,7 +307,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ABA 3: RELATÓRIOS E RESULTADOS (SE LICENÇA ATIVA) */}
+        {/* ABA 3: DASHBOARD DO CLIENTE */}
         {abaAtiva === 'cliente-resultados' && temAcesso && (
           <ClientPortal utilizadorAtual={utilizadorAtual} />
         )}
