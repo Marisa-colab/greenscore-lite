@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as XLSX from 'xlsx'; // Importante para ler o Excel
 import { Utilizador } from '../types';
 
 interface AdminPortalProps {
@@ -13,6 +14,30 @@ export function AdminPortal({ utilizadores, setUtilizadores, utilizadorAtual, se
   const [historico, setHistorico] = useState<number | ''>(210);
   const [limite, setLimite] = useState<number | ''>(1000);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
+
+  // 1. Função que processa o ficheiro Excel carregado
+  const carregarExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const ficheiro = event.target.files?.[0];
+    if (!ficheiro) return;
+
+    const leitor = new FileReader();
+    leitor.onload = (e) => {
+      try {
+        const dados = new Uint8Array(e.target?.result as ArrayBuffer);
+        const livro = XLSX.read(dados, { type: 'array' });
+
+        const primeiraFolha = livro.Sheets[livro.SheetNames[0]];
+        const dadosConvertidos = XLSX.utils.sheet_to_json(primeiraFolha);
+
+        console.log("Dados carregados do Excel:", dadosConvertidos);
+        alert(`Sucesso! ${dadosConvertidos.length} registos carregados do ficheiro ${ficheiro.name}`);
+      } catch (erro) {
+        alert("Erro ao ler o ficheiro de Excel. Verifique o formato.");
+      }
+    };
+
+    leitor.readAsArrayBuffer(ficheiro);
+  };
 
   const handleRegistrar = (e: React.FormEvent) => {
     e.preventDefault(); // Impede o refresh da página
@@ -58,6 +83,17 @@ export function AdminPortal({ utilizadores, setUtilizadores, utilizadorAtual, se
 
   return (
     <div className="space-y-8">
+      {/* Botão de Importar Excel */}
+      <div className="p-4 bg-slate-800 rounded-lg my-4 text-white">
+        <h3 className="text-lg font-bold mb-2">Importar Dados de Excel</h3>
+        <input 
+          type="file" 
+          accept=".xlsx, .xls" 
+          onChange={carregarExcel} 
+          className="block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-green-600 file:text-white hover:file:bg-green-700 cursor-pointer"
+        />
+      </div>
+      
       {/* Cabeçalho */}
       <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center justify-between">
         <div>
@@ -79,8 +115,8 @@ export function AdminPortal({ utilizadores, setUtilizadores, utilizadorAtual, se
           <span>✨ {mensagemSucesso}</span>
           <button onClick={() => setMensagemSucesso(null)} className="text-xs text-slate-400 hover:text-white">✕</button>
         </div>
-      )}
-
+      )} 
+  
       {/* Formulário de Criação de Novo Cliente */}
       <form onSubmit={handleRegistrar} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-6">
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">
