@@ -1,6 +1,6 @@
+import * as XLSX from 'xlsx';
 import React, { useState, useEffect } from 'react';
 import PostosList, { Posto } from './components/PostosList';
-import * as XLSX from 'xlsx';
 
 export interface LeituraHistorica {
   id: string;
