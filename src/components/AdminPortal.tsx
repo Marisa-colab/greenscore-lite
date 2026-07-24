@@ -94,16 +94,28 @@ export function AdminPortal({ utilizadores, setUtilizadores, utilizadorAtual, se
         />
       </div>
       
-      {/* Cabeçalho */}
+       {/* Cabeçalho */}
       <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             🛡️ Painel de Licenciamento & Venda Mestre
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
-            Controlo centralizado de clientes, chaves API e linhas de base de consumo.
+          <p className="text-xs text-slate-400 mt-1">
+            Gestão centralizada de clientes, registo de faturas e atribuição de recompensas.
           </p>
         </div>
+      </div>
+
+      {/* --- CAIXA DE IMPORTAÇÃO EXCEL --- */}
+      <div className="my-4 p-4 bg-slate-800/90 border border-slate-700 rounded-xl shadow-lg">
+        <h3 className="text-sm font-semibold text-green-400 mb-2">📊 Importar Faturas/Dados em Lote (Excel)</h3>
+        <input 
+          type="file" 
+          accept=".xlsx, .xls" 
+          onChange={carregarExcel} 
+          className="block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-600 file:text-white file:font-medium hover:file:bg-green-700 cursor-pointer transition-all"
+        />
+      </div>
         <span className="px-3 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-full text-xs font-semibold">
           Sessão Mestre Ativa
         </span>
