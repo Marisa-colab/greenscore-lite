@@ -20,7 +20,7 @@ const DADOS_INICIAIS: Utilizador[] = [
     email: 'suporte@expirado.com',
     role: 'cliente',
     licencaAtiva: false,
-    dataInicioLicenca: '2024-01-01',
+    dataInicioLicenca: '2026-01-01',
     duracaoMeses: 12,
   }
 ];
