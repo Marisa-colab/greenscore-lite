@@ -1,3 +1,8 @@
+import React, { useState } from 'react';
+import { verificarLicenca } from './utils';
+import { Utilizador } from './types';
+import * as XLSX from 'xlsx';
+
 export function App() {
   const [vista, setVista] = useState<'admin' | 'cliente'>('admin');
   const [adminAba, setAdminAba] = useState<'clientes' | 'historico' | 'equipa'>('historico');
