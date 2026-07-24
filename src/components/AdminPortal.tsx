@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import * as XLSX from 'xlsx'; // Importante para ler o Excel
+import React, { useState } from 'react';
 import { Utilizador } from '../types';
 
 interface AdminPortalProps {
