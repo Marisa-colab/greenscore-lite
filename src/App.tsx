@@ -43,14 +43,14 @@ const DADOS_INICIAIS_POSTOS: Posto[] = [
     clienteId: 1,
     nomePosto: 'Posto Angra do Heroísmo',
     cpe: 'PT0002000012345678FA',
-    funcionarioResponsavel: 'Maria Silva',
+    funcionarioResponsavel: 'Zelia',
   },
   {
     id: 102,
     clienteId: 1,
     nomePosto: 'Posto Praia da Vitória',
     cpe: 'PT0002000088888888FB',
-    funcionarioResponsavel: 'João Santos',
+    funcionarioResponsavel: 'Ricardo,
   }
 ];
 
