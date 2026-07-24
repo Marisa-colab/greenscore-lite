@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Utilizador } from './types';
-import { verificarLicenca } from './utils/licenca';
+import { verificarLicenca } from './utils';
 import { ClientPortal } from './components/ClientPortal';
 
 // Dados de exemplo para inicialização caso o localStorage esteja vazio
