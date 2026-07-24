@@ -7,7 +7,6 @@ export function App() {
   const [vista, setVista] = useState<'admin' | 'cliente'>('admin');
   const [adminAba, setAdminAba] = useState<'clientes' | 'historico' | 'equipa'>('historico');
   const [clienteAba, setClienteAba] = useState<'historico' | 'equipa' | 'postos'>('historico');
-
   const [clientes, setClientes] = useState<Cliente[]>(() => {
     const saved = localStorage.getItem('gs_clientes');
     if (saved) {
@@ -24,7 +23,30 @@ export function App() {
   const [clienteAtivoId, setClienteAtivoId] = useState<string>(() => {
     return localStorage.getItem('gs_ativo_id') || 'cli_ps_acores';
   });
+  
+const carregarExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const ficheiro = event.target.files?.[0];
+    if (!ficheiro) return;
 
+    const leitor = new FileReader();
+    leitor.onload = (e) => {
+      try {
+     const dados = new Uint8Array(e.target?.result as ArrayBuffer);
+     const livro = XLSX.read(dados, { type: 'array' });
+     const primeiraFolha = livro.Sheets[livro.SheetNames[0]];
+     const dadosConvertidos = XLSX.utils.sheet_to_json(primeiraFolha);
+
+        console.log("Dados do Excel importados com sucesso:", dadosConvertidos);
+        alert(`Sucesso! ${dadosConvertidos.length} linhas lidas do ficheiro ${ficheiro.name}`);
+        
+    } catch (erro) {
+        console.error("Erro ao ler excel:", erro);
+        alert("Erro ao ler o ficheiro de Excel. Verifica se o formato está correto.");
+      }
+    };
+    leitor.readAsArrayBuffer(ficheiro);
+  };
+  
   if (utilizadorAtual) {
     const temAcesso = verificarLicenca(utilizadorAtual);
     if (!temAcesso) {
