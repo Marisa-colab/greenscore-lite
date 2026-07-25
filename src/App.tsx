@@ -26,8 +26,8 @@ function verificarLicenca(u: Utilizador): boolean {
 const DADOS_INICIAIS_CLIENTES: Utilizador[] = [
   {
     id: 1,
-    nome: 'Empresa PS-Açores',
-    email: 'contacto@psacores.pt',
+    nome: 'Empresa Lda',
+    email: 'contacto@mail.pt',
     cpe: 'PT0002000012345678FA',
     creditos_acumulados: 142,
     role: 'cliente',
@@ -41,16 +41,16 @@ const DADOS_INICIAIS_POSTOS: Posto[] = [
   {
     id: 101,
     clienteId: 1,
-    nomePosto: 'Posto Angra do Heroísmo',
+    nomePosto: 'Posto 1',
     cpe: 'PT0002000012345678FA',
-    funcionarioResponsavel: 'Zélia',
+    funcionarioResponsavel: 'responsavel',
   },
   {
     id: 102,
     clienteId: 1,
-    nomePosto: 'Posto Praia da Vitória',
+    nomePosto: 'Posto 2',
     cpe: 'PT0002000088888888FB',
-    funcionarioResponsavel: 'Ricardo',
+    funcionarioResponsavel: 'responsavelnome',
   }
 ];
 
@@ -377,7 +377,7 @@ export default function App() {
                       <label className="block text-xs text-slate-300 mb-1">Funcionário Responsável</label>
                       <input 
                         type="text" 
-                        placeholder="Ex: Maria Silva" 
+                        placeholder="Ex: responsavel" 
                         value={novoFuncionario} 
                         onChange={(e) => setNovoFuncionario(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
@@ -417,7 +417,7 @@ export default function App() {
         )}
 
         {/* ABA 2: INTRODUÇÃO DE DADOS POR POSTO */}
-        {abaAtiva === 'cliente-input' && temAcesso && (
+        {abaAtiva === 'dados-input' && temAcesso && (
           <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
             <h2 className="text-xl font-bold text-white">Introduzir Fatura / Leitura do Contador</h2>
             
@@ -452,8 +452,8 @@ export default function App() {
         )}
 
         {/* ABA 3: DASHBOARD */}
-        {abaAtiva === 'cliente-resultados' && temAcesso && (
-          <ClientPortal 
+        {abaAtiva === 'dados-resultados' && temAcesso && (
+          <DadosPortal 
             utilizadorAtual={utilizadorAtual} 
             onVoltarAdmin={() => setAbaAtiva('admin')} 
           />
