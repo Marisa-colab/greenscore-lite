@@ -1,12 +1,12 @@
 import React from 'react';
 import { Utilizador } from '../types';
 
-interface ClientPortalProps {
+interface ClientDadosProps {
   utilizadorAtual?: Utilizador;
   onVoltarAdmin?: () => void;
 }
 
-export function ClientPortal({ utilizadorAtual, onVoltarAdmin }: ClientPortalProps) {
+export function DadosPortal({ utilizadorAtual, onVoltarAdmin }: ClientPortalProps) {
   
   if (!utilizadorAtual) {
     return (
