@@ -86,6 +86,13 @@ function PainelRelatorios({ utilizador, postos }: { utilizador: Utilizador; post
     { mes: 'Abr', consumo: 8100 },
     { mes: 'Mai', consumo: 8300 },
     { mes: 'Jun', consumo: 8300 },
+    { mes: 'Jul', consumo: 8300 },
+    { mes: 'Agost', consumo: 8300 },
+    { mes: 'Stemb', consumo: 8300 },
+    { mes: 'Out', consumo: 8300 },
+    { mes: 'Nov', consumo: 8300 },
+    { mes: 'Dez', consumo: 8300 },
+    
   ];
 
   const totalConsumoAtual = postos.reduce((acc, p) => acc + p.consumoAtualKwh, 0);
@@ -222,6 +229,7 @@ export default function App() {
   const [mostrarFormNovoPosto, setMostrarFormNovoPosto] = useState(false);
   const [novoNomePosto, setNovoNomePosto] = useState('');
   const [novoCpe, setNovoCpe] = useState('');
+  const [novoConsumoAnterior, setNovoConsumoAnterior] = useState<number>(4000);
   const [novoFuncionario, setNovoFuncionario] = useState('');
   const [novoObjetivoPct, setNovoObjetivoPct] = useState<number>(10);
   const [novoPremio, setNovoPremio] = useState('');
