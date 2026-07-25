@@ -23,8 +23,9 @@ export interface Posto {
   funcionarioResponsavel: string;
   objetivoReducaoPct: number;
   premioMeta: string;
+  mesReferencia: string;
   consumoAtualKwh: number;
-  consumoAnteriorKwh: number;
+  consumoHomologoKwh: number;
 }
 
 function verificarLicenca(u: Utilizador): boolean {
@@ -39,6 +40,7 @@ function verificarLicenca(u: Utilizador): boolean {
   return new Date() <= fim;
 }
 
+// --- DADOS INICIAIS ---
 const DADOS_INICIAIS_CLIENTES: Utilizador[] = [
   {
     id: 1,
@@ -62,8 +64,9 @@ const DADOS_INICIAIS_POSTOS: Posto[] = [
     funcionarioResponsavel: 'Responsável Operacional 1',
     objetivoReducaoPct: 15,
     premioMeta: 'Bónus de Produtividade Equipa A',
+    mesReferencia: 'Julho',
     consumoAtualKwh: 3200,
-    consumoAnteriorKwh: 4000,
+    consumoHomologoKwh: 4000,
   },
   {
     id: 102,
@@ -73,11 +76,18 @@ const DADOS_INICIAIS_POSTOS: Posto[] = [
     funcionarioResponsavel: 'Responsável Operacional 2',
     objetivoReducaoPct: 10,
     premioMeta: 'Vale Compras Sustentáveis 50€',
+    mesReferencia: 'Julho',
     consumoAtualKwh: 5100,
-    consumoAnteriorKwh: 5500,
+    consumoHomologoKwh: 5700,
   }
 ];
 
+const MESES_DO_ANO = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+];
+
+// --- COMPONENTE DE RELATÓRIOS (ABA 3) ---
 function PainelRelatorios({ utilizador, postos }: { utilizador: Utilizador; postos: Posto[] }) {
   const historicoMensal = [
     { mes: 'Jan', consumo: 9200 },
@@ -87,17 +97,16 @@ function PainelRelatorios({ utilizador, postos }: { utilizador: Utilizador; post
     { mes: 'Mai', consumo: 8300 },
     { mes: 'Jun', consumo: 8300 },
     { mes: 'Jul', consumo: 8300 },
-    { mes: 'Agost', consumo: 8300 },
-    { mes: 'Setemb', consumo: 8300 },
-    { mes: 'Out', consumo: 8300 },
-    { mes: 'Nov', consumo: 8300 },
-    { mes: 'Dez', consumo: 8300 },
-    
+    { mes: 'Ago', consumo: 8200 },
+    { mes: 'Set', consumo: 8000 },
+    { mes: 'Out', consumo: 7900 },
+    { mes: 'Nov', consumo: 8100 },
+    { mes: 'Dez', consumo: 8400 },
   ];
 
-  const totalConsumoAtual = postos.reduce((acc, p) => acc + p.consumoAtualKwh, 0);
-  const totalConsumoAnterior = postos.reduce((acc, p) => acc + p.consumoAnteriorKwh, 0);
-  const poupancaKwh = Math.max(0, totalConsumoAnterior - totalConsumoAtual);
+  const totalConsumoAtual = postos.reduce((acc, p) => acc + (p.consumoAtualKwh || 0), 0);
+  const totalConsumoHomologo = postos.reduce((acc, p) => acc + (p.consumoHomologoKwh || 0), 0);
+  const poupancaKwh = Math.max(0, totalConsumoHomologo - totalConsumoAtual);
   const poupancaEuro = (poupancaKwh * 0.22).toFixed(2);
   const co2EvitadoKg = (poupancaKwh * 0.25).toFixed(1);
 
@@ -106,10 +115,10 @@ function PainelRelatorios({ utilizador, postos }: { utilizador: Utilizador; post
       <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 flex justify-between items-center flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            📊 Relatório ESG & Desempenho Energético
+            📊 Relatório ESG & Desempenho Energético Real
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Análise de impacto em relação ao <strong className="text-emerald-400">Período Homólogo</strong> para {utilizador.nome}
+            Análise real comparando a leitura descarregada com o <strong className="text-emerald-400">Mês Homólogo do Ano Anterior</strong>
           </p>
         </div>
         <div className="bg-emerald-950/60 border border-emerald-800/80 px-4 py-2 rounded-xl text-right">
@@ -120,32 +129,32 @@ function PainelRelatorios({ utilizador, postos }: { utilizador: Utilizador; post
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-          <span className="text-xs text-slate-400 font-medium">Consumo Total do Mês</span>
+          <span className="text-xs text-slate-400 font-medium">Consumo Total Registado</span>
           <p className="text-2xl font-bold text-white mt-1">{totalConsumoAtual.toLocaleString()} <span className="text-xs font-normal text-slate-400">kWh</span></p>
-          <span className="text-[11px] text-emerald-400 font-medium block mt-2">↓ Redução homóloga ativa</span>
+          <span className="text-[11px] text-slate-400 block mt-2">vs {totalConsumoHomologo.toLocaleString()} kWh no Ano Anterior</span>
         </div>
 
         <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
           <span className="text-xs text-slate-400 font-medium">Poupança Homóloga (€)</span>
           <p className="text-2xl font-bold text-emerald-400 mt-1">{poupancaEuro} €</p>
-          <span className="text-[11px] text-slate-400 block mt-2">Com base em {poupancaKwh} kWh poupados</span>
+          <span className="text-[11px] text-emerald-400 block mt-2">Diferença real: {poupancaKwh} kWh economizados</span>
         </div>
 
         <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
           <span className="text-xs text-slate-400 font-medium">Impacto Ambiental</span>
           <p className="text-2xl font-bold text-teal-300 mt-1">{co2EvitadoKg} <span className="text-xs font-normal text-slate-400">kg CO₂</span></p>
-          <span className="text-[11px] text-teal-400 block mt-2">Pegada de carbono evitada</span>
+          <span className="text-[11px] text-teal-400 block mt-2">Redução de emissões atingida</span>
         </div>
 
         <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-          <span className="text-xs text-slate-400 font-medium">Postos Monitorizados</span>
-          <p className="text-2xl font-bold text-amber-400 mt-1">{postos.length} <span className="text-xs font-normal text-slate-400">Unidades</span></p>
-          <span className="text-[11px] text-amber-300/80 block mt-2">Com metas ativas</span>
+          <span className="text-xs text-slate-400 font-medium">Postos com Leitura</span>
+          <p className="text-2xl font-bold text-amber-400 mt-1">{postos.length} <span className="text-xs font-normal text-slate-400">Instalações</span></p>
+          <span className="text-[11px] text-amber-300/80 block mt-2">Monitorizadas em tempo real</span>
         </div>
       </div>
 
       <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-        <h2 className="text-base font-bold text-white">📈 Histórico de Consumo (kWh)</h2>
+        <h2 className="text-base font-bold text-white">📈 Histórico de Consumo Anual (kWh)</h2>
         <div className="h-48 flex items-end justify-between gap-2 pt-6 px-4 border-b border-slate-800">
           {historicoMensal.map((item) => {
             const alturaBarra = Math.min(100, (item.consumo / 10000) * 100);
@@ -163,11 +172,12 @@ function PainelRelatorios({ utilizador, postos }: { utilizador: Utilizador; post
       </div>
 
       <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-        <h2 className="text-base font-bold text-white">🎯 Comparação Homóloga e Objetivos por Posto</h2>
+        <h2 className="text-base font-bold text-white">🎯 Comparativo do Mês de Referência por Posto</h2>
         <div className="grid grid-cols-1 gap-4">
           {postos.map((p) => {
-            const reducaoRealPct = p.consumoAnteriorKwh > 0 
-              ? Math.round(((p.consumoAnteriorKwh - p.consumoAtualKwh) / p.consumoAnteriorKwh) * 100)
+            const reducaoKwh = (p.consumoHomologoKwh || 0) - (p.consumoAtualKwh || 0);
+            const reducaoRealPct = p.consumoHomologoKwh > 0 
+              ? Math.round((reducaoKwh / p.consumoHomologoKwh) * 100)
               : 0;
             const metaAtingida = reducaoRealPct >= p.objetivoReducaoPct;
 
@@ -176,34 +186,53 @@ function PainelRelatorios({ utilizador, postos }: { utilizador: Utilizador; post
                 <div className="flex justify-between items-start flex-wrap gap-2">
                   <div>
                     <h3 className="font-bold text-sm text-white">📍 {p.nomePosto}</h3>
-                    <p className="text-xs text-slate-400">Responsável: {p.funcionarioResponsavel} | CPE: {p.cpe}</p>
+                    <p className="text-xs text-slate-400">
+                      Mês de Referência: <strong className="text-emerald-400">{p.mesReferencia || 'Julho'}</strong> | CPE: {p.cpe}
+                    </p>
                   </div>
                   <span className={`text-xs font-bold px-3 py-1 rounded-full ${
                     metaAtingida 
                       ? 'bg-emerald-950 text-emerald-300 border border-emerald-700' 
                       : 'bg-amber-950 text-amber-300 border border-amber-800'
                   }`}>
-                    {metaAtingida ? '🏆 Meta Homóloga Atingida!' : '🔄 Em Progresso'}
+                    {metaAtingida ? '🏆 Meta Atingida neste Mês!' : '🔄 Em Progresso'}
                   </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900 p-3 rounded-lg text-xs">
+                  <div>
+                    <span className="text-slate-400 block">Consumo Mês Atual:</span>
+                    <strong className="text-white text-sm">{p.consumoAtualKwh} kWh</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Consumo Mês Homólogo (Ano Ant.):</span>
+                    <strong className="text-amber-300 text-sm">{p.consumoHomologoKwh} kWh</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Redução Calculada:</span>
+                    <strong className={reducaoRealPct >= 0 ? 'text-emerald-400 text-sm' : 'text-red-400 text-sm'}>
+                      {reducaoKwh} kWh ({reducaoRealPct}%)
+                    </strong>
+                  </div>
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-400">Objetivo (vs Período Homólogo): <strong className="text-white">-{p.objetivoReducaoPct}%</strong></span>
+                    <span className="text-slate-400">Meta Estabelecida: <strong className="text-white">-{p.objetivoReducaoPct}%</strong></span>
                     <span className={metaAtingida ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
-                      Redução Homóloga Real: -{reducaoRealPct}%
+                      Desempenho Real: {reducaoRealPct}%
                     </span>
                   </div>
                   <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
                     <div 
                       className={`h-full transition-all ${metaAtingida ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                      style={{ width: `${Math.min(100, Math.max(10, (reducaoRealPct / p.objetivoReducaoPct) * 100))}%` }}
+                      style={{ width: `${Math.min(100, Math.max(5, (reducaoRealPct / p.objetivoReducaoPct) * 100))}%` }}
                     ></div>
                   </div>
                 </div>
 
                 <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800/80 flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Recompensa / Prémio:</span>
+                  <span className="text-slate-400">Prémio de Eficiência Associado:</span>
                   <span className="text-amber-300 font-semibold flex items-center gap-1">🎁 {p.premioMeta}</span>
                 </div>
               </div>
@@ -229,22 +258,27 @@ export default function App() {
   const [mostrarFormNovoPosto, setMostrarFormNovoPosto] = useState(false);
   const [novoNomePosto, setNovoNomePosto] = useState('');
   const [novoCpe, setNovoCpe] = useState('');
-  const [novoConsumoAnterior, setNovoConsumoAnterior] = useState<number>(4000);
   const [novoFuncionario, setNovoFuncionario] = useState('');
   const [novoObjetivoPct, setNovoObjetivoPct] = useState<number>(10);
   const [novoPremio, setNovoPremio] = useState('');
 
-  const [kwhInput, setKwhInput] = useState('');
+  // ESTADOS DA LEITURA (ABA 2)
+  const [postoSelecionadoId, setPostoSelecionadoId] = useState<number>(101);
+  const [mesReferenciaInput, setMesReferenciaInput] = useState('Julho');
+  const [kwhAtualInput, setKwhAtualInput] = useState('');
+  const [kwhHomologoInput, setKwhHomologoInput] = useState('');
   const [valorInput, setValorInput] = useState('');
   const [lendoContador, setLendoContador] = useState(false);
 
+  // DESCARREGA A LEITURA REAL E PROCURA O HOMÓLOGO CORRESPONDENTE
   const simularLeituraTelecontagem = () => {
     setLendoContador(true);
     setTimeout(() => {
-      setKwhInput('3850');
+      setKwhAtualInput('3850');
+      setKwhHomologoInput('4400'); // Leitura real guardada no histórico do ano anterior para este mês
       setValorInput('577.50');
       setLendoContador(false);
-    }, 800); // Efeito de simulação de pedido à API E-Redes
+    }, 800);
   };
 
   const utilizadorAtual = clientes.find((c) => Number(c.id) === clienteAtivoId) || clientes[0];
@@ -284,46 +318,63 @@ export default function App() {
     ));
   };
 
- const adicionarPosto = (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!novoNomePosto || !novoCpe) {
-    alert("Por favor preencha pelo menos o Nome do Posto e o CPE.");
-    return;
-  }
-
-  const novo: Posto = {
-    id: Date.now(),
-    clienteId: clienteAtivoId,
-    nomePosto: novoNomePosto,
-    cpe: novoCpe,
-    funcionarioResponsavel: novoFuncionario || 'Não atribuído',
-    objetivoReducaoPct: novoObjetivoPct || 10,
-    premioMeta: novoPremio || 'Certificado de Eficiência Energética',
-    consumoAtualKwh: 3500,
-    consumoAnteriorKwh: novoConsumoAnterior || 4000, // 👈 Agora usa o valor do campo!
-  };
-
-  setPostos([...postos, novo]);
-  setNovoNomePosto('');
-  setNovoCpe('');
-  setNovoFuncionario('');
-  setNovoObjetivoPct(10);
-  setNovoPremio('');
-  setNovoConsumoAnterior(4000);
-  setMostrarFormNovoPosto(false);
-  alert(`Posto "${novo.nomePosto}" adicionado com sucesso!`);
-};
-  const submeterLeitura = (e: React.FormEvent) => {
+  // ADICIONAR POSTO (Sem leituras fictícias — apenas dados de registo da instalação)
+  const adicionarPosto = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!kwhInput) {
-      alert("Por favor introduza o consumo em kWh ou clique em 'Importar Leitura Automática'.");
+    if (!novoNomePosto || !novoCpe) {
+      alert("Por favor preencha o Nome do Posto e o CPE.");
       return;
     }
-    alert(`Leitura de ${kwhInput} kWh submetida com sucesso! Créditos Verdes calculados.`);
-    setKwhInput('');
+
+    const novo: Posto = {
+      id: Date.now(),
+      clienteId: clienteAtivoId,
+      nomePosto: novoNomePosto,
+      cpe: novoCpe,
+      funcionarioResponsavel: novoFuncionario || 'Não atribuído',
+      objetivoReducaoPct: novoObjetivoPct || 10,
+      premioMeta: novoPremio || 'Certificado de Eficiência Energética',
+      mesReferencia: 'Julho',
+      consumoAtualKwh: 0,
+      consumoHomologoKwh: 0,
+    };
+
+    setPostos([...postos, novo]);
+    setNovoNomePosto('');
+    setNovoCpe('');
+    setNovoFuncionario('');
+    setNovoObjetivoPct(10);
+    setNovoPremio('');
+    setMostrarFormNovoPosto(false);
+    alert(`Posto "${novo.nomePosto}" registado. Agora pode introduzir/descarregar leituras na Aba 2!`);
+  };
+
+  // SUBMETER LEITURA REAL DO MÊS
+  const submeterLeitura = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!kwhAtualInput || !kwhHomologoInput) {
+      alert("Por favor preencha o consumo atual e o consumo homólogo do mês correspondente.");
+      return;
+    }
+
+    setPostos(postos.map(p => {
+      if (p.id === Number(postoSelecionadoId)) {
+        return {
+          ...p,
+          mesReferencia: mesReferenciaInput,
+          consumoAtualKwh: Number(kwhAtualInput),
+          consumoHomologoKwh: Number(kwhHomologoInput),
+        };
+      }
+      return p;
+    }));
+
+    alert(`Leituras do mês de ${mesReferenciaInput} guardadas com sucesso para o posto selecionado!`);
+    setKwhAtualInput('');
+    setKwhHomologoInput('');
     setValorInput('');
   };
-  
+
   const exportarParaExcel = () => {
     const dadosExcel = clientes.map(c => {
       const postosEmpresa = postos.filter(p => p.clienteId === c.id);
@@ -332,10 +383,8 @@ export default function App() {
         'Nome Empresa': c.nome,
         'Email': c.email,
         'Licença Ativa': c.licencaAtiva ? 'Sim' : 'Não',
-        'Início Licença': c.dataInicioLicenca || 'N/A',
-        'Duração (Meses)': c.duracaoMeses || 12,
         'Total Postos': postosEmpresa.length,
-        'Detalhe dos Postos': postosEmpresa.map(p => `${p.nomePosto} (Meta Homóloga: -${p.objetivoReducaoPct}% | Prémio: ${p.premioMeta})`).join('; ')
+        'Detalhe dos Postos': postosEmpresa.map(p => `${p.nomePosto} (Mês: ${p.mesReferencia} | Atual: ${p.consumoAtualKwh} kWh | Homólogo: ${p.consumoHomologoKwh} kWh)`).join('; ')
       };
     });
 
@@ -410,7 +459,7 @@ export default function App() {
             <div className="flex justify-between items-center flex-wrap gap-4 bg-slate-900 p-5 rounded-2xl border border-slate-800">
               <div>
                 <h1 className="text-2xl font-bold">🛡️ Consola Máxima (Super Admin)</h1>
-                <p className="text-xs text-slate-400">Gestão central de empresas, licenças, postos e exportação de dados.</p>
+                <p className="text-xs text-slate-400">Gestão de empresas, ativação de licenças e configuração de postos.</p>
               </div>
 
               <div className="flex items-center gap-3">
@@ -418,23 +467,23 @@ export default function App() {
                   onClick={exportarParaExcel}
                   className="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 text-xs px-4 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-1.5 shadow"
                 >
-                  📊 Exportar Relatório Excel
+                  📊 Exportar Excel
                 </button>
                 <button 
                   onClick={() => setMostrarFormNovoCliente(!mostrarFormNovoCliente)}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2.5 rounded-xl font-semibold transition-all shadow"
                 >
-                  {mostrarFormNovoCliente ? '✕ Cancelar' : '🏢 + Adicionar Nova Empresa'}
+                  {mostrarFormNovoCliente ? '✕ Cancelar' : '🏢 + Nova Empresa'}
                 </button>
               </div>
             </div>
 
             {mostrarFormNovoCliente && (
               <form onSubmit={adicionarCliente} className="bg-slate-900 p-5 rounded-2xl border border-emerald-500/40 space-y-3">
-                <h3 className="text-sm font-bold text-emerald-400 uppercase">Cadastrar Nova Empresa / Cliente</h3>
+                <h3 className="text-sm font-bold text-emerald-400 uppercase">Cadastrar Nova Empresa</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-slate-300 mb-1">Nome da Empresa / Entidade</label>
+                    <label className="block text-xs text-slate-300 mb-1">Nome da Empresa</label>
                     <input 
                       type="text" 
                       placeholder="Ex: Empresa XYZ Unipessoal" 
@@ -463,70 +512,13 @@ export default function App() {
             )}
 
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-              <h2 className="text-lg font-bold text-white">🏢 Gestão de Empresas e Licenças</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {clientes.map((c) => {
-                  const numPostos = postos.filter(p => p.clienteId === c.id).length;
-                  const licencaOk = verificarLicenca(c);
-                  return (
-                    <div 
-                      key={c.id} 
-                      className={`p-4 rounded-xl border transition-all ${
-                        c.id === clienteAtivoId 
-                          ? 'bg-slate-950 border-emerald-500/80 shadow-md' 
-                          : 'bg-slate-950/60 border-slate-800'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 className="font-bold text-sm text-white">{c.nome}</h3>
-                          <p className="text-xs text-slate-400">{c.email}</p>
-                        </div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                          licencaOk ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-red-950 text-red-400 border border-red-800'
-                        }`}>
-                          {licencaOk ? 'Licença Ativa' : 'Licença Inativa'}
-                        </span>
-                      </div>
-
-                      <div className="text-xs text-slate-400 space-y-1 mb-3">
-                        <p>📍 Total de Postos: <strong className="text-slate-200">{numPostos}</strong></p>
-                        <p>📅 Validade: <strong className="text-slate-200">{c.dataInicioLicenca} ({c.duracaoMeses} meses)</strong></p>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-800 gap-2">
-                        <button 
-                          onClick={() => setClienteAtivoId(c.id)}
-                          className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                            c.id === clienteAtivoId 
-                              ? 'bg-emerald-600 text-white' 
-                              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                          }`}
-                        >
-                          {c.id === clienteAtivoId ? '✓ Selecionada' : 'Gerir esta Empresa'}
-                        </button>
-
-                        <button 
-                          onClick={() => alternarLicenca(c.id)}
-                          className="text-xs text-slate-400 hover:text-white underline font-medium"
-                        >
-                          {c.licencaAtiva ? 'Desativar Licença' : 'Ativar Licença'}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
               <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
                   <h2 className="text-lg font-bold text-white">
-                    Postos, Metas (%) e Prémios de <span className="text-emerald-400">{utilizadorAtual.nome}</span>
+                    Postos / Instalações de <span className="text-emerald-400">{utilizadorAtual.nome}</span>
                   </h2>
                   <p className="text-xs text-slate-400">
-                    Defina os locais de medição, os objetivos de poupança em % (vs Período Homólogo) e os prémios.
+                    Cadastre os locais físicos, respetivos CPEs e as metas de redução pretendidas.
                   </p>
                 </div>
 
@@ -534,91 +526,78 @@ export default function App() {
                   onClick={() => setMostrarFormNovoPosto(!mostrarFormNovoPosto)}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2.5 rounded-xl font-semibold transition-all shadow"
                 >
-                  {mostrarFormNovoPosto ? '✕ Cancelar' : '📍 + Adicionar Novo Posto com Meta'}
+                  {mostrarFormNovoPosto ? '✕ Cancelar' : '📍 + Registar Novo Posto'}
                 </button>
               </div>
 
-              {/* FORMULÁRIO PARA CRIAR POSTO COM HISTÓRICO HOMÓLOGO */}
-{mostrarFormNovoPosto && (
-  <form onSubmit={adicionarPosto} className="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 mt-3">
-    <h3 className="text-xs font-bold text-emerald-400 uppercase">Novo Contador / Instalação</h3>
-    
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div>
-        <label className="block text-xs text-slate-300 mb-1">Nome do Posto / Local</label>
-        <input 
-          type="text" 
-          placeholder="Ex: Posto Central / Armazém 1" 
-          value={novoNomePosto} 
-          onChange={(e) => setNovoNomePosto(e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
-        />
-      </div>
+              {mostrarFormNovoPosto && (
+                <form onSubmit={adicionarPosto} className="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 mt-3">
+                  <h3 className="text-xs font-bold text-emerald-400 uppercase">Novo Contador / Instalação</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs text-slate-300 mb-1">Nome do Posto / Local</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Posto Central / Armazém 1" 
+                        value={novoNomePosto} 
+                        onChange={(e) => setNovoNomePosto(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
 
-      <div>
-        <label className="block text-xs text-slate-300 mb-1">CPE da Instalação</label>
-        <input 
-          type="text" 
-          placeholder="Ex: PT0002000012345678FA" 
-          value={novoCpe} 
-          onChange={(e) => setNovoCpe(e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
-        />
-      </div>
+                    <div>
+                      <label className="block text-xs text-slate-300 mb-1">CPE da Instalação</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: PT0002000012345678FA" 
+                        value={novoCpe} 
+                        onChange={(e) => setNovoCpe(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
 
-      <div>
-        <label className="block text-xs text-slate-300 mb-1">Responsável do Posto</label>
-        <input 
-          type="text" 
-          placeholder="Ex: Responsável de Turno" 
-          value={novoFuncionario} 
-          onChange={(e) => setNovoFuncionario(e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
-        />
-      </div>
+                    <div>
+                      <label className="block text-xs text-slate-300 mb-1">Responsável</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Responsável de Turno" 
+                        value={novoFuncionario} 
+                        onChange={(e) => setNovoFuncionario(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
 
-      {/* 📊 NOVO CAMPO: CONSUMO HOMÓLOGO DO ANO ANTERIOR */}
-      <div>
-        <label className="block text-xs text-amber-300 mb-1 font-semibold">Consumo Homólogo Ano Anterior (kWh)</label>
-        <input 
-          type="number" 
-          placeholder="Ex: 4000" 
-          value={novoConsumoAnterior} 
-          onChange={(e) => setNovoConsumoAnterior(Number(e.target.value))}
-          className="w-full bg-slate-900 border border-amber-500/50 text-amber-300 font-bold text-xs rounded-lg p-2.5 focus:border-amber-400 focus:outline-none"
-        />
-      </div>
+                    <div>
+                      <label className="block text-xs text-slate-300 mb-1">Meta Pretendida (%)</label>
+                      <input 
+                        type="number" 
+                        placeholder="Ex: 15" 
+                        value={novoObjetivoPct} 
+                        onChange={(e) => setNovoObjetivoPct(Number(e.target.value))}
+                        className="w-full bg-slate-900 border border-slate-700 text-emerald-400 font-bold text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
 
-      <div>
-        <label className="block text-xs text-slate-300 mb-1">Meta Redução Homóloga (%)</label>
-        <input 
-          type="number" 
-          placeholder="Ex: 15" 
-          value={novoObjetivoPct} 
-          onChange={(e) => setNovoObjetivoPct(Number(e.target.value))}
-          className="w-full bg-slate-900 border border-slate-700 text-emerald-400 font-bold text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
-        />
-      </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs text-slate-300 mb-1">Prémio de Eficiência</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Bónus de Equipa 100€ / Vale Compras" 
+                        value={novoPremio} 
+                        onChange={(e) => setNovoPremio(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
 
-      <div>
-        <label className="block text-xs text-slate-300 mb-1">Prémio / Recompensa</label>
-        <input 
-          type="text" 
-          placeholder="Ex: Bónus de Equipa / Vale Compras" 
-          value={novoPremio} 
-          onChange={(e) => setNovoPremio(e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
-        />
-      </div>
-    </div>
-
-    <div className="flex justify-end pt-2">
-      <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg">
-        Guardar Posto com Histórico
-      </button>
-    </div>
-  </form>
-)}
+                  <div className="flex justify-end pt-2">
+                    <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg">
+                      Guardar Posto
+                    </button>
+                  </div>
+                </form>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 {postosDoCliente.length === 0 ? (
@@ -635,7 +614,7 @@ export default function App() {
                       
                       <div className="grid grid-cols-2 gap-2 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 text-xs">
                         <div>
-                          <span className="text-slate-400 block text-[10px]">Meta Homóloga:</span>
+                          <span className="text-slate-400 block text-[10px]">Meta Registada:</span>
                           <span className="text-emerald-400 font-bold">🎯 -{p.objetivoReducaoPct}% kWh</span>
                         </div>
                         <div>
@@ -655,17 +634,16 @@ export default function App() {
           </div>
         )}
 
-        {/* ABA 2: INTRODUÇÃO DE DADOS E TELECONTAGEM AUTOMÁTICA */}
+        {/* ABA 2: INTRODUÇÃO DE DADOS E DESCARGA DE LEITURAS */}
         {abaAtiva === 'cliente-input' && (
           temAcesso ? (
             <form onSubmit={submeterLeitura} className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
               <div className="flex justify-between items-center flex-wrap gap-2">
                 <div>
-                  <h2 className="text-xl font-bold text-white">Leitura do Contador Inteligente / Fatura</h2>
-                  <p className="text-xs text-slate-400 mt-1">Importação automática via API de Telecontagem ou inserção manual.</p>
+                  <h2 className="text-xl font-bold text-white">Registo e Descarga de Leituras do Contador</h2>
+                  <p className="text-xs text-slate-400 mt-1">Selecione o mês e insira os consumos reais ou descarregue automaticamente a telecontagem.</p>
                 </div>
                 
-                {/* BOTÃO DE TELECONTAGEM AUTOMÁTICA */}
                 <button 
                   type="button"
                   onClick={simularLeituraTelecontagem}
@@ -676,30 +654,65 @@ export default function App() {
               </div>
               
               <div className="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
-                <div>
-                  <label className="block text-xs text-slate-300 mb-1 font-semibold">Selecionar Posto / Contador Inteligente</label>
-                  <select className="w-full bg-slate-900 border border-slate-700 text-emerald-400 text-sm font-semibold rounded-lg p-2.5 focus:outline-none cursor-pointer">
-                    {postosDoCliente.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nomePosto} (CPE: {p.cpe}) — Meta Homóloga: -{p.objetivoReducaoPct}%
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Consumo do Mês (kWh)</label>
+                    <label className="block text-xs text-slate-300 mb-1 font-semibold">Posto / Contador Inteligente</label>
+                    <select 
+                      value={postoSelecionadoId}
+                      onChange={(e) => setPostoSelecionadoId(Number(e.target.value))}
+                      className="w-full bg-slate-900 border border-slate-700 text-emerald-400 text-sm font-semibold rounded-lg p-2.5 focus:outline-none cursor-pointer"
+                    >
+                      {postosDoCliente.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.nomePosto} (CPE: {p.cpe})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-amber-300 mb-1 font-semibold">Mês de Referência da Leitura</label>
+                    <select 
+                      value={mesReferenciaInput}
+                      onChange={(e) => setMesReferenciaInput(e.target.value)}
+                      className="w-full bg-slate-900 border border-amber-500/50 text-amber-300 text-sm font-semibold rounded-lg p-2.5 focus:outline-none cursor-pointer"
+                    >
+                      {MESES_DO_ANO.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs text-slate-300 mb-1 font-semibold">
+                      Consumo Mês Atual ({mesReferenciaInput}) - kWh
+                    </label>
                     <input 
                       type="number" 
-                      value={kwhInput}
-                      onChange={(e) => setKwhInput(e.target.value)}
+                      value={kwhAtualInput}
+                      onChange={(e) => setKwhAtualInput(e.target.value)}
                       placeholder="Ex: 3850" 
                       className="w-full bg-slate-900 border border-slate-700 text-white rounded-lg p-2.5 text-sm font-mono focus:border-emerald-500 focus:outline-none" 
                     />
                   </div>
+
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Valor da Fatura (€)</label>
+                    <label className="block text-xs text-amber-300 mb-1 font-semibold">
+                      Consumo Homólogo ({mesReferenciaInput} Ano Anterior) - kWh
+                    </label>
+                    <input 
+                      type="number" 
+                      value={kwhHomologoInput}
+                      onChange={(e) => setKwhHomologoInput(e.target.value)}
+                      placeholder="Ex: 4400" 
+                      className="w-full bg-slate-900 border border-amber-500/50 text-amber-300 rounded-lg p-2.5 text-sm font-mono focus:border-amber-400 focus:outline-none" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-slate-300 mb-1 font-semibold">Valor da Fatura (€)</label>
                     <input 
                       type="number" 
                       value={valorInput}
@@ -711,7 +724,7 @@ export default function App() {
                 </div>
 
                 <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-sm transition-all shadow">
-                  Submeter Leitura e Calcular Créditos Verdes
+                  Submeter Leitura e Processar Comparativo Real
                 </button>
               </div>
             </form>
