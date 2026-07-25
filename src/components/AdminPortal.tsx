@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx'; // Importante para ler o Excel
+import * as XLSX from 'xlsx'; 
 import React, { useState } from 'react';
 import { Utilizador } from '../types';
 import { RelatorioModule } from './RelatorioModule';
@@ -181,7 +181,7 @@ export function AdminPortal({ utilizadores, setUtilizadores, utilizadorAtual, se
         </button>
       </form>
 
-      {/* Tabela de Clientes */}
+      {/* Tabela de Dados */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-300">
