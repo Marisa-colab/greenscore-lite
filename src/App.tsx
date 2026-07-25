@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Utilizador } from './types';
-import { ClientPortal } from './components/ClientPortal';
+import { DadosPortal } from './components/ClientPortal';
 
 interface Posto {
   id: number;
@@ -25,7 +25,6 @@ function verificarLicenca(u: Utilizador): boolean {
   return new Date() <= fim;
 }
 
-// DADOS DE DEMONSTRAÇÃO ANÓNIMOS (Prontos para apresentação)
 const DADOS_INICIAIS_CLIENTES: Utilizador[] = [
   {
     id: 1,
