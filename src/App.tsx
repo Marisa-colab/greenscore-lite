@@ -88,7 +88,7 @@ function PainelRelatorios({ utilizador, postos }: { utilizador: Utilizador; post
     { mes: 'Jun', consumo: 8300 },
     { mes: 'Jul', consumo: 8300 },
     { mes: 'Agost', consumo: 8300 },
-    { mes: 'Stemb', consumo: 8300 },
+    { mes: 'Setemb', consumo: 8300 },
     { mes: 'Out', consumo: 8300 },
     { mes: 'Nov', consumo: 8300 },
     { mes: 'Dez', consumo: 8300 },
@@ -284,35 +284,35 @@ export default function App() {
     ));
   };
 
-  const adicionarPosto = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!novoNomePosto || !novoCpe) {
-      alert("Por favor preencha pelo menos o Nome do Posto e o CPE.");
-      return;
-    }
+ const adicionarPosto = (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!novoNomePosto || !novoCpe) {
+    alert("Por favor preencha pelo menos o Nome do Posto e o CPE.");
+    return;
+  }
 
-    const novo: Posto = {
-      id: Date.now(),
-      clienteId: clienteAtivoId,
-      nomePosto: novoNomePosto,
-      cpe: novoCpe,
-      funcionarioResponsavel: novoFuncionario || 'Não atribuído',
-      objetivoReducaoPct: novoObjetivoPct || 10,
-      premioMeta: novoPremio || 'Certificado de Eficiência Energética',
-      consumoAtualKwh: 3500,
-      consumoAnteriorKwh: 4000,
-    };
-
-    setPostos([...postos, novo]);
-    setNovoNomePosto('');
-    setNovoCpe('');
-    setNovoFuncionario('');
-    setNovoObjetivoPct(10);
-    setNovoPremio('');
-    setMostrarFormNovoPosto(false);
-    alert(`Posto "${novo.nomePosto}" adicionado com sucesso!`);
+  const novo: Posto = {
+    id: Date.now(),
+    clienteId: clienteAtivoId,
+    nomePosto: novoNomePosto,
+    cpe: novoCpe,
+    funcionarioResponsavel: novoFuncionario || 'Não atribuído',
+    objetivoReducaoPct: novoObjetivoPct || 10,
+    premioMeta: novoPremio || 'Certificado de Eficiência Energética',
+    consumoAtualKwh: 3500,
+    consumoAnteriorKwh: novoConsumoAnterior || 4000, // 👈 Agora usa o valor do campo!
   };
 
+  setPostos([...postos, novo]);
+  setNovoNomePosto('');
+  setNovoCpe('');
+  setNovoFuncionario('');
+  setNovoObjetivoPct(10);
+  setNovoPremio('');
+  setNovoConsumoAnterior(4000);
+  setMostrarFormNovoPosto(false);
+  alert(`Posto "${novo.nomePosto}" adicionado com sucesso!`);
+};
   const submeterLeitura = (e: React.FormEvent) => {
     e.preventDefault();
     if (!kwhInput) {
@@ -538,68 +538,87 @@ export default function App() {
                 </button>
               </div>
 
-              {mostrarFormNovoPosto && (
-                <form onSubmit={adicionarPosto} className="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 mt-3">
-                  <h3 className="text-xs font-bold text-emerald-400 uppercase">Novo Contador / Instalação</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1">Nome do Posto / Local</label>
-                      <input 
-                        type="text" 
-                        placeholder="Ex: Posto Central / Armazém 1" 
-                        value={novoNomePosto} 
-                        onChange={(e) => setNovoNomePosto(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1">CPE da Instalação</label>
-                      <input 
-                        type="text" 
-                        placeholder="Ex: PT0002000012345678FA" 
-                        value={novoCpe} 
-                        onChange={(e) => setNovoCpe(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1">Responsável do Posto</label>
-                      <input 
-                        type="text" 
-                        placeholder="Ex: Responsável de Turno" 
-                        value={novoFuncionario} 
-                        onChange={(e) => setNovoFuncionario(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-slate-300 mb-1">Meta Redução Homóloga (%)</label>
-                      <input 
-                        type="number" 
-                        placeholder="Ex: 15" 
-                        value={novoObjetivoPct} 
-                        onChange={(e) => setNovoObjetivoPct(Number(e.target.value))}
-                        className="w-full bg-slate-900 border border-slate-700 text-emerald-400 font-bold text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-xs text-slate-300 mb-1">Prémio / Recompensa ao Atingir Meta</label>
-                      <input 
-                        type="text" 
-                        placeholder="Ex: Bónus de Equipa 100€ / Vale Compras" 
-                        value={novoPremio} 
-                        onChange={(e) => setNovoPremio(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end">
-                    <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg">
-                      Guardar Posto e Configurar Gamificação
-                    </button>
-                  </div>
-                </form>
-              )}
+              {/* FORMULÁRIO PARA CRIAR POSTO COM HISTÓRICO HOMÓLOGO */}
+{mostrarFormNovoPosto && (
+  <form onSubmit={adicionarPosto} className="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 mt-3">
+    <h3 className="text-xs font-bold text-emerald-400 uppercase">Novo Contador / Instalação</h3>
+    
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div>
+        <label className="block text-xs text-slate-300 mb-1">Nome do Posto / Local</label>
+        <input 
+          type="text" 
+          placeholder="Ex: Posto Central / Armazém 1" 
+          value={novoNomePosto} 
+          onChange={(e) => setNovoNomePosto(e.target.value)}
+          className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs text-slate-300 mb-1">CPE da Instalação</label>
+        <input 
+          type="text" 
+          placeholder="Ex: PT0002000012345678FA" 
+          value={novoCpe} 
+          onChange={(e) => setNovoCpe(e.target.value)}
+          className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs text-slate-300 mb-1">Responsável do Posto</label>
+        <input 
+          type="text" 
+          placeholder="Ex: Responsável de Turno" 
+          value={novoFuncionario} 
+          onChange={(e) => setNovoFuncionario(e.target.value)}
+          className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+        />
+      </div>
+
+      {/* 📊 NOVO CAMPO: CONSUMO HOMÓLOGO DO ANO ANTERIOR */}
+      <div>
+        <label className="block text-xs text-amber-300 mb-1 font-semibold">Consumo Homólogo Ano Anterior (kWh)</label>
+        <input 
+          type="number" 
+          placeholder="Ex: 4000" 
+          value={novoConsumoAnterior} 
+          onChange={(e) => setNovoConsumoAnterior(Number(e.target.value))}
+          className="w-full bg-slate-900 border border-amber-500/50 text-amber-300 font-bold text-xs rounded-lg p-2.5 focus:border-amber-400 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs text-slate-300 mb-1">Meta Redução Homóloga (%)</label>
+        <input 
+          type="number" 
+          placeholder="Ex: 15" 
+          value={novoObjetivoPct} 
+          onChange={(e) => setNovoObjetivoPct(Number(e.target.value))}
+          className="w-full bg-slate-900 border border-slate-700 text-emerald-400 font-bold text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs text-slate-300 mb-1">Prémio / Recompensa</label>
+        <input 
+          type="text" 
+          placeholder="Ex: Bónus de Equipa / Vale Compras" 
+          value={novoPremio} 
+          onChange={(e) => setNovoPremio(e.target.value)}
+          className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+        />
+      </div>
+    </div>
+
+    <div className="flex justify-end pt-2">
+      <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg">
+        Guardar Posto com Histórico
+      </button>
+    </div>
+  </form>
+)}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 {postosDoCliente.length === 0 ? (
