@@ -28,6 +28,7 @@ export interface Posto {
   consumoHomologoKwh: number;
 }
 
+// VALIDAÇÃO RIGOROSA DA LICENÇA
 function verificarLicenca(u: Utilizador): boolean {
   if (!u) return false;
   if (u.licencaAtiva === false) return false;
@@ -51,6 +52,17 @@ const DADOS_INICIAIS_CLIENTES: Utilizador[] = [
     role: 'cliente',
     licencaAtiva: true,
     dataInicioLicenca: '2026-01-01',
+    duracaoMeses: 12,
+  },
+  {
+    id: 2,
+    nome: 'Indústrias Sustentáveis SA',
+    email: 'geral@industrias-sustentaveis.pt',
+    cpe: 'PT0002000099999999FC',
+    creditos_acumulados: 120,
+    role: 'cliente',
+    licencaAtiva: false,
+    dataInicioLicenca: '2025-01-01',
     duracaoMeses: 12,
   }
 ];
@@ -118,7 +130,7 @@ function PainelRelatorios({ utilizador, postos }: { utilizador: Utilizador; post
             📊 Relatório ESG & Desempenho Energético Real
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Análise real comparando a leitura descarregada com o <strong className="text-emerald-400">Mês Homólogo do Ano Anterior</strong>
+            Análise real comparando a leitura descarregada com o <strong className="text-emerald-400">Mês Homólogo do Ano Anterior</strong> para {utilizador.nome}
           </p>
         </div>
         <div className="bg-emerald-950/60 border border-emerald-800/80 px-4 py-2 rounded-xl text-right">
@@ -147,9 +159,9 @@ function PainelRelatorios({ utilizador, postos }: { utilizador: Utilizador; post
         </div>
 
         <div className="bg-slate-900 p-4 rounded-xl border border-slate-800">
-          <span className="text-xs text-slate-400 font-medium">Postos com Leitura</span>
+          <span className="text-xs text-slate-400 font-medium">Postos Monitorizados</span>
           <p className="text-2xl font-bold text-amber-400 mt-1">{postos.length} <span className="text-xs font-normal text-slate-400">Instalações</span></p>
-          <span className="text-[11px] text-amber-300/80 block mt-2">Monitorizadas em tempo real</span>
+          <span className="text-[11px] text-amber-300/80 block mt-2">Com métricas ativas</span>
         </div>
       </div>
 
@@ -270,12 +282,12 @@ export default function App() {
   const [valorInput, setValorInput] = useState('');
   const [lendoContador, setLendoContador] = useState(false);
 
-  // DESCARREGA A LEITURA REAL E PROCURA O HOMÓLOGO CORRESPONDENTE
+  // SIMULAÇÃO DE PEDIDO À API E-REDES
   const simularLeituraTelecontagem = () => {
     setLendoContador(true);
     setTimeout(() => {
       setKwhAtualInput('3850');
-      setKwhHomologoInput('4400'); // Leitura real guardada no histórico do ano anterior para este mês
+      setKwhHomologoInput('4400');
       setValorInput('577.50');
       setLendoContador(false);
     }, 800);
@@ -309,16 +321,17 @@ export default function App() {
     setNovoNomeEmpresa('');
     setNovoEmailEmpresa('');
     setMostrarFormNovoCliente(false);
-    alert(`Empresa "${novoCliente.nome}" criada com sucesso!`);
+    alert(`Empresa "${novoCliente.nome}" criada com sucesso com licença de 12 meses!`);
   };
 
+  // ALTERNAR STATUS DA LICENÇA
   const alternarLicenca = (id: number) => {
     setClientes(clientes.map((c) => 
       c.id === id ? { ...c, licencaAtiva: !c.licencaAtiva } : c
     ));
   };
 
-  // ADICIONAR POSTO (Sem leituras fictícias — apenas dados de registo da instalação)
+  // REGISTAR NOVO POSTO
   const adicionarPosto = (e: React.FormEvent) => {
     e.preventDefault();
     if (!novoNomePosto || !novoCpe) {
@@ -346,10 +359,10 @@ export default function App() {
     setNovoObjetivoPct(10);
     setNovoPremio('');
     setMostrarFormNovoPosto(false);
-    alert(`Posto "${novo.nomePosto}" registado. Agora pode introduzir/descarregar leituras na Aba 2!`);
+    alert(`Posto "${novo.nomePosto}" registado com sucesso!`);
   };
 
-  // SUBMETER LEITURA REAL DO MÊS
+  // SUBMETER LEITURA REAL
   const submeterLeitura = (e: React.FormEvent) => {
     e.preventDefault();
     if (!kwhAtualInput || !kwhHomologoInput) {
@@ -383,6 +396,8 @@ export default function App() {
         'Nome Empresa': c.nome,
         'Email': c.email,
         'Licença Ativa': c.licencaAtiva ? 'Sim' : 'Não',
+        'Início Licença': c.dataInicioLicenca || 'N/A',
+        'Duração (Meses)': c.duracaoMeses || 12,
         'Total Postos': postosEmpresa.length,
         'Detalhe dos Postos': postosEmpresa.map(p => `${p.nomePosto} (Mês: ${p.mesReferencia} | Atual: ${p.consumoAtualKwh} kWh | Homólogo: ${p.consumoHomologoKwh} kWh)`).join('; ')
       };
@@ -399,7 +414,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans">
       
-      {/* BARRA SUPERIOR */}
+      {/* BARRA SUPERIOR DE NAVEGAÇÃO */}
       <nav className="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-xl font-bold text-emerald-400 flex items-center gap-2">
@@ -407,7 +422,7 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-            <span className="text-xs text-slate-400 font-medium">Cliente Ativo:</span>
+            <span className="text-xs text-slate-400 font-medium">Empresa Selecionada:</span>
             <select 
               value={clienteAtivoId} 
               onChange={(e) => setClienteAtivoId(Number(e.target.value))}
@@ -459,7 +474,7 @@ export default function App() {
             <div className="flex justify-between items-center flex-wrap gap-4 bg-slate-900 p-5 rounded-2xl border border-slate-800">
               <div>
                 <h1 className="text-2xl font-bold">🛡️ Consola Máxima (Super Admin)</h1>
-                <p className="text-xs text-slate-400">Gestão de empresas, ativação de licenças e configuração de postos.</p>
+                <p className="text-xs text-slate-400">Gestão central de empresas, licenças de utilização e postos de medição.</p>
               </div>
 
               <div className="flex items-center gap-3">
@@ -511,6 +526,68 @@ export default function App() {
               </form>
             )}
 
+            {/* 🔑 BLOCO RECUPERADO: GESTÃO DE EMPRESAS E LICENÇAS */}
+            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+              <h2 className="text-lg font-bold text-white">🏢 Gestão de Empresas e Licenças de Acesso</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {clientes.map((c) => {
+                  const numPostos = postos.filter(p => p.clienteId === c.id).length;
+                  const licencaOk = verificarLicenca(c);
+                  return (
+                    <div 
+                      key={c.id} 
+                      className={`p-4 rounded-xl border transition-all ${
+                        c.id === clienteAtivoId 
+                          ? 'bg-slate-950 border-emerald-500/80 shadow-md' 
+                          : 'bg-slate-950/60 border-slate-800'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-bold text-sm text-white">{c.nome}</h3>
+                          <p className="text-xs text-slate-400">{c.email}</p>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                          licencaOk 
+                            ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' 
+                            : 'bg-red-950 text-red-400 border border-red-800'
+                        }`}>
+                          {licencaOk ? '✓ Licença Ativa' : '✕ Licença Inativa'}
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-slate-400 space-y-1 my-3 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                        <p>📍 Total de Postos Registados: <strong className="text-slate-200">{numPostos}</strong></p>
+                        <p>📅 Data de Início da Licença: <strong className="text-slate-200">{c.dataInicioLicenca || '2026-01-01'}</strong></p>
+                        <p>⏳ Duração Contratada: <strong className="text-slate-200">{c.duracaoMeses || 12} meses</strong></p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-800 gap-2">
+                        <button 
+                          onClick={() => setClienteAtivoId(c.id)}
+                          className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                            c.id === clienteAtivoId 
+                              ? 'bg-emerald-600 text-white' 
+                              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                          }`}
+                        >
+                          {c.id === clienteAtivoId ? '✓ Selecionada' : 'Gerir esta Empresa'}
+                        </button>
+
+                        <button 
+                          onClick={() => alternarLicenca(c.id)}
+                          className="text-xs text-slate-400 hover:text-white underline font-medium"
+                        >
+                          {c.licencaAtiva ? 'Desativar Licença' : 'Ativar Licença'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* CONFIGURAÇÃO DE POSTOS E METAS */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
               <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
@@ -732,7 +809,9 @@ export default function App() {
             <div className="bg-slate-900 p-8 rounded-2xl border border-red-800/50 text-center space-y-3">
               <span className="text-3xl">⚠️</span>
               <h2 className="text-lg font-bold text-red-400">Licença Inativa ou Expirada</h2>
-              <p className="text-xs text-slate-400">Ative a licença desta empresa na Consola Admin para permitir a introdução de leituras.</p>
+              <p className="text-xs text-slate-400">
+                A licença da empresa <strong className="text-white">{utilizadorAtual.nome}</strong> está inativa ou expirada. Ative-a na Consola Admin.
+              </p>
             </div>
           )
         )}
@@ -748,7 +827,9 @@ export default function App() {
             <div className="bg-slate-900 p-8 rounded-2xl border border-red-800/50 text-center space-y-3">
               <span className="text-3xl">⚠️</span>
               <h2 className="text-lg font-bold text-red-400">Licença Inativa ou Expirada</h2>
-              <p className="text-xs text-slate-400">Ative a licença desta empresa na Consola Admin para visualizar os relatórios ESG.</p>
+              <p className="text-xs text-slate-400">
+                A licença da empresa <strong className="text-white">{utilizadorAtual.nome}</strong> está inativa ou expirada. Ative-a na Consola Admin para consultar os relatórios.
+              </p>
             </div>
           )
         )}
