@@ -9,6 +9,8 @@ interface Posto {
   nomePosto: string;
   cpe: string;
   funcionarioResponsavel: string;
+  objetivoReducaoPct: number; // Ex: 10% de redução de consumo
+  premioMeta: string;          // Ex: "Bónus de Equipa 100€" ou "Vale de Compras"
 }
 
 function verificarLicenca(u: Utilizador): boolean {
@@ -23,11 +25,12 @@ function verificarLicenca(u: Utilizador): boolean {
   return new Date() <= fim;
 }
 
+// DADOS DE DEMONSTRAÇÃO ANÓNIMOS (Prontos para apresentação)
 const DADOS_INICIAIS_CLIENTES: Utilizador[] = [
   {
     id: 1,
-    nome: 'Empresa Lda',
-    email: 'contacto@mail.pt',
+    nome: 'Empresa Demonstração Lda',
+    email: 'contacto@empresa-demo.pt',
     cpe: 'PT0002000012345678FA',
     creditos_acumulados: 142,
     role: 'cliente',
@@ -41,16 +44,20 @@ const DADOS_INICIAIS_POSTOS: Posto[] = [
   {
     id: 101,
     clienteId: 1,
-    nomePosto: 'Posto 1',
+    nomePosto: 'Posto Administrativo A',
     cpe: 'PT0002000012345678FA',
-    funcionarioResponsavel: 'responsavel',
+    funcionarioResponsavel: 'Responsável Operacional 1',
+    objetivoReducaoPct: 15,
+    premioMeta: 'Bónus de Produtividade Equipa A',
   },
   {
     id: 102,
     clienteId: 1,
-    nomePosto: 'Posto 2',
+    nomePosto: 'Centro Logístico B',
     cpe: 'PT0002000088888888FB',
-    funcionarioResponsavel: 'responsavelnome',
+    funcionarioResponsavel: 'Responsável Operacional 2',
+    objetivoReducaoPct: 10,
+    premioMeta: 'Vale Compras Sustentáveis 50€',
   }
 ];
 
@@ -63,16 +70,18 @@ export default function App() {
   const [novoNomeEmpresa, setNovoNomeEmpresa] = useState('');
   const [novoEmailEmpresa, setNovoEmailEmpresa] = useState('');
 
-   const [postos, setPostos] = useState<Posto[]>(DADOS_INICIAIS_POSTOS);
+  const [postos, setPostos] = useState<Posto[]>(DADOS_INICIAIS_POSTOS);
   const [mostrarFormNovoPosto, setMostrarFormNovoPosto] = useState(false);
   const [novoNomePosto, setNovoNomePosto] = useState('');
   const [novoCpe, setNovoCpe] = useState('');
   const [novoFuncionario, setNovoFuncionario] = useState('');
+  const [novoObjetivoPct, setNovoObjetivoPct] = useState<number>(10);
+  const [novoPremio, setNovoPremio] = useState('');
 
   const utilizadorAtual = clientes.find((c) => Number(c.id) === clienteAtivoId) || clientes[0];
   const postosDoCliente = postos.filter((p) => p.clienteId === clienteAtivoId);
 
-    const adicionarCliente = (e: React.FormEvent) => {
+  const adicionarCliente = (e: React.FormEvent) => {
     e.preventDefault();
     if (!novoNomeEmpresa || !novoEmailEmpresa) {
       alert("Por favor preencha o Nome e o Email da Empresa.");
@@ -100,13 +109,13 @@ export default function App() {
     alert(`Empresa "${novoCliente.nome}" criada com sucesso!`);
   };
 
-   const alternarLicenca = (id: number) => {
+  const alternarLicenca = (id: number) => {
     setClientes(clientes.map((c) => 
       c.id === id ? { ...c, licencaAtiva: !c.licencaAtiva } : c
     ));
   };
 
-   const adicionarPosto = (e: React.FormEvent) => {
+  const adicionarPosto = (e: React.FormEvent) => {
     e.preventDefault();
     if (!novoNomePosto || !novoCpe) {
       alert("Por favor preencha pelo menos o Nome do Posto e o CPE.");
@@ -119,12 +128,16 @@ export default function App() {
       nomePosto: novoNomePosto,
       cpe: novoCpe,
       funcionarioResponsavel: novoFuncionario || 'Não atribuído',
+      objetivoReducaoPct: novoObjetivoPct || 10,
+      premioMeta: novoPremio || 'Certificado de Eficiência Energética',
     };
 
     setPostos([...postos, novo]);
     setNovoNomePosto('');
     setNovoCpe('');
     setNovoFuncionario('');
+    setNovoObjetivoPct(10);
+    setNovoPremio('');
     setMostrarFormNovoPosto(false);
     alert(`Posto "${novo.nomePosto}" adicionado com sucesso!`);
   };
@@ -140,7 +153,7 @@ export default function App() {
         'Início Licença': c.dataInicioLicenca || 'N/A',
         'Duração (Meses)': c.duracaoMeses || 12,
         'Total Postos': postosEmpresa.length,
-        'Lista de Postos': postosEmpresa.map(p => `${p.nomePosto} (${p.cpe})`).join('; ')
+        'Detalhe dos Postos': postosEmpresa.map(p => `${p.nomePosto} (Meta: -${p.objetivoReducaoPct}% | Prémio: ${p.premioMeta})`).join('; ')
       };
     });
 
@@ -328,15 +341,15 @@ export default function App() {
               </div>
             </div>
 
-            {/* GESTÃO DE POSTOS / CONTADORES DO CLIENTE ATIVO */}
+            {/* GESTÃO DE POSTOS / CONTADORES E METAS DO CLIENTE ATIVO */}
             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
               <div className="flex justify-between items-center flex-wrap gap-3">
                 <div>
                   <h2 className="text-lg font-bold text-white">
-                    Postos / Contadores de <span className="text-emerald-400">{utilizadorAtual.nome}</span>
+                    Postos, Metas (%) e Prémios de <span className="text-emerald-400">{utilizadorAtual.nome}</span>
                   </h2>
                   <p className="text-xs text-slate-400">
-                    Gerir os locais de medição e os funcionários responsáveis de cada posto.
+                    Defina os locais de medição, os objetivos de poupança em % e os prémios de gamificação.
                   </p>
                 </div>
 
@@ -344,20 +357,20 @@ export default function App() {
                   onClick={() => setMostrarFormNovoPosto(!mostrarFormNovoPosto)}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2.5 rounded-xl font-semibold transition-all shadow"
                 >
-                  {mostrarFormNovoPosto ? '✕ Cancelar' : '📍 + Adicionar Novo Posto / Contador'}
+                  {mostrarFormNovoPosto ? '✕ Cancelar' : '📍 + Adicionar Novo Posto com Meta'}
                 </button>
               </div>
 
-              {/* FORMULÁRIO PARA CRIAR POSTO */}
+              {/* FORMULÁRIO PARA CRIAR POSTO COM OBJETIVO E PRÉMIO */}
               {mostrarFormNovoPosto && (
                 <form onSubmit={adicionarPosto} className="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-3 mt-3">
-                  <h3 className="text-xs font-bold text-emerald-400 uppercase">Novo Contador / Instalação</h3>
+                  <h3 className="text-xs font-bold text-emerald-400 uppercase">Novo Contador / Instalação com Objetivos</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs text-slate-300 mb-1">Nome do Posto / Local</label>
                       <input 
                         type="text" 
-                        placeholder="Ex: Posto Angra / Posto Praia" 
+                        placeholder="Ex: Posto Central / Armazém 1" 
                         value={novoNomePosto} 
                         onChange={(e) => setNovoNomePosto(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
@@ -374,19 +387,39 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-slate-300 mb-1">Funcionário Responsável</label>
+                      <label className="block text-xs text-slate-300 mb-1">Responsável do Posto</label>
                       <input 
                         type="text" 
-                        placeholder="Ex: responsavel" 
+                        placeholder="Ex: Responsável de Turno" 
                         value={novoFuncionario} 
                         onChange={(e) => setNovoFuncionario(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-300 mb-1">Meta de Redução (%)</label>
+                      <input 
+                        type="number" 
+                        placeholder="Ex: 15" 
+                        value={novoObjetivoPct} 
+                        onChange={(e) => setNovoObjetivoPct(Number(e.target.value))}
+                        className="w-full bg-slate-900 border border-slate-700 text-emerald-400 font-bold text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs text-slate-300 mb-1">Prémio / Recompensa ao Atingir Meta</label>
+                      <input 
+                        type="text" 
+                        placeholder="Ex: Bónus de Equipa 100€ / Vale Compras" 
+                        value={novoPremio} 
+                        onChange={(e) => setNovoPremio(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg p-2.5 focus:border-emerald-500 focus:outline-none"
                       />
                     </div>
                   </div>
                   <div className="flex justify-end">
                     <button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-lg">
-                      Guardar Posto
+                      Guardar Posto e Configurar Gamificação
                     </button>
                   </div>
                 </form>
@@ -398,15 +431,27 @@ export default function App() {
                   <p className="text-xs text-slate-500 italic">Nenhum posto associado a esta empresa ainda.</p>
                 ) : (
                   postosDoCliente.map((p) => (
-                    <div key={p.id} className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <div key={p.id} className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-sm text-emerald-300">📍 {p.nomePosto}</span>
                         <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">
                           CPE: {p.cpe}
                         </span>
                       </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 text-xs">
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Meta de Redução:</span>
+                          <span className="text-emerald-400 font-bold">🎯 -{p.objetivoReducaoPct}% kWh</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">Prémio Atribuído:</span>
+                          <span className="text-amber-400 font-semibold truncate block">🏆 {p.premioMeta}</span>
+                        </div>
+                      </div>
+
                       <p className="text-xs text-slate-400">
-                        👤 Funcionário Responsável: <strong className="text-slate-200">{p.funcionarioResponsavel}</strong>
+                        👤 Responsável: <strong className="text-slate-200">{p.funcionarioResponsavel}</strong>
                       </p>
                     </div>
                   ))
@@ -417,7 +462,7 @@ export default function App() {
         )}
 
         {/* ABA 2: INTRODUÇÃO DE DADOS POR POSTO */}
-        {abaAtiva === 'dados-input' && temAcesso && (
+        {abaAtiva === 'cliente-input' && temAcesso && (
           <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
             <h2 className="text-xl font-bold text-white">Introduzir Fatura / Leitura do Contador</h2>
             
@@ -427,7 +472,7 @@ export default function App() {
                 <select className="w-full bg-slate-900 border border-slate-700 text-emerald-400 text-sm font-semibold rounded-lg p-2.5 focus:outline-none">
                   {postosDoCliente.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.nomePosto} ({p.cpe}) — Resp: {p.funcionarioResponsavel}
+                      {p.nomePosto} (CPE: {p.cpe}) — Meta: -{p.objetivoReducaoPct}%
                     </option>
                   ))}
                 </select>
@@ -444,16 +489,16 @@ export default function App() {
                 </div>
               </div>
 
-              <button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-sm transition-all">
-                Submeter Leitura do Posto
+              <button className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-sm transition-all shadow">
+                Submeter Leitura e Calcular Créditos Verdes
               </button>
             </div>
           </div>
         )}
 
-        {/* ABA 3: DASHBOARD */}
-        {abaAtiva === 'dados-resultados' && temAcesso && (
-          <DadosPortal 
+        {/* ABA 3: DASHBOARD & RELATÓRIOS (GRÁFICOS) */}
+        {abaAtiva === 'cliente-resultados' && temAcesso && (
+          <ClientPortal 
             utilizadorAtual={utilizadorAtual} 
             onVoltarAdmin={() => setAbaAtiva('admin')} 
           />
